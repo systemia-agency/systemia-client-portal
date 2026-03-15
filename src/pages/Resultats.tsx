@@ -123,7 +123,7 @@ export function Resultats() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 16% 90%)" />
                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(220 10% 42%)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(220 10% 42%)' }} axisLine={false} tickLine={false} unit="€" />
-                <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`${value}€`, 'CPL']} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${value}€`, 'CPL']} />
                 <Line type="monotone" dataKey="cpl" stroke="var(--sys-violet)" strokeWidth={2} dot={{ fill: 'var(--sys-violet)', r: 4 }} name="CPL" />
               </LineChart>
             </ResponsiveContainer>
