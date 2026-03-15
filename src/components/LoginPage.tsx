@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -15,11 +15,8 @@ export function LoginPage() {
 
   // If already authenticated, redirect
   if (isAuthenticated && user) {
-    if (user.role === 'admin') {
-      navigate('/admin', { replace: true })
-    } else {
-      navigate(`/client/${user.slug}`, { replace: true })
-    }
+    const target = user.role === 'admin' ? '/admin' : `/client/${user.slug}`
+    return <Navigate to={target} replace />
   }
 
   const handleSubmit = (e: FormEvent) => {
