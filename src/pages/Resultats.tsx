@@ -5,61 +5,41 @@ import {
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { trafficData } from '@/data/mock'
+import { useClientData } from '@/hooks/useClientData'
 import { cn } from '@/lib/utils'
 
 const periods = ['7 jours', '30 jours', '90 jours', 'Personnalisé'] as const
 
 export function Resultats() {
   const [activePeriod, setActivePeriod] = useState<string>('30 jours')
+  const { clientData } = useClientData()
+  if (!clientData) return null
 
-  const tooltipStyle = {
-    backgroundColor: 'white',
-    border: '1px solid hsl(220 16% 90%)',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,.08)',
-    fontSize: '13px',
-  }
+  const { trafficData } = clientData
+  const tooltipStyle = { backgroundColor: 'white', border: '1px solid hsl(220 16% 90%)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,.08)', fontSize: '13px' }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Résultats marketing</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Suivez vos performances en temps réel.
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">Suivez vos performances en temps réel.</p>
         </div>
         <div className="flex items-center gap-2">
           {periods.map((period) => (
-            <Button
-              key={period}
-              variant={activePeriod === period ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setActivePeriod(period)}
-              className={cn(activePeriod === period && 'shadow-sm')}
-            >
+            <Button key={period} variant={activePeriod === period ? 'default' : 'outline'} size="sm" onClick={() => setActivePeriod(period)} className={cn(activePeriod === period && 'shadow-sm')}>
               {period}
             </Button>
           ))}
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Traffic */}
         <Card>
-          <CardHeader>
-            <CardTitle>Trafic</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Trafic</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={trafficData}>
-                <defs>
-                  <linearGradient id="trafficGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--sys-blue)" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="var(--sys-blue)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="trafficGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--sys-blue)" stopOpacity={0.15} /><stop offset="100%" stopColor="var(--sys-blue)" stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 16% 90%)" />
                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(220 10% 42%)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(220 10% 42%)' }} axisLine={false} tickLine={false} />
@@ -69,12 +49,8 @@ export function Resultats() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        {/* Conversions */}
         <Card>
-          <CardHeader>
-            <CardTitle>Conversions</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Conversions</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={trafficData}>
@@ -87,21 +63,12 @@ export function Resultats() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        {/* Leads */}
         <Card>
-          <CardHeader>
-            <CardTitle>Leads</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Leads</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={trafficData}>
-                <defs>
-                  <linearGradient id="leadsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--sys-green)" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="var(--sys-green)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="leadsGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--sys-green)" stopOpacity={0.15} /><stop offset="100%" stopColor="var(--sys-green)" stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 16% 90%)" />
                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(220 10% 42%)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(220 10% 42%)' }} axisLine={false} tickLine={false} />
@@ -111,12 +78,8 @@ export function Resultats() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        {/* Cost per Lead */}
         <Card>
-          <CardHeader>
-            <CardTitle>Coût par lead</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Coût par lead</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={trafficData}>

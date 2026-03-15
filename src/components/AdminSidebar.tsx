@@ -1,32 +1,18 @@
-import { NavLink, useParams, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard, BarChart3, FolderKanban, MessageSquare,
-  Sparkles, Receipt, BookOpen, Bot, LogOut, User,
-} from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, Users, MessageSquare, BookOpen, LogOut, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
-import { useClientData } from '@/hooks/useClientData'
 
-export function Sidebar() {
-  const { slug } = useParams<{ slug: string }>()
+const navItems = [
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/clients', label: 'Clients', icon: Users },
+  { to: '/admin/demandes', label: 'Demandes SAV', icon: MessageSquare },
+  { to: '/admin/ressources', label: 'Ressources', icon: BookOpen },
+]
+
+export function AdminSidebar() {
   const { user, logout } = useAuth()
-  const { clientData } = useClientData()
   const navigate = useNavigate()
-
-  const base = `/client/${slug}`
-  const navItems = [
-    { to: base, label: 'Accueil', icon: LayoutDashboard, end: true },
-    { to: `${base}/resultats`, label: 'Résultats marketing', icon: BarChart3 },
-    { to: `${base}/projets`, label: 'Projets en cours', icon: FolderKanban },
-    { to: `${base}/demandes`, label: 'Demandes & support', icon: MessageSquare },
-    { to: `${base}/services`, label: 'Services & optimisations', icon: Sparkles },
-    { to: `${base}/facturation`, label: 'Facturation', icon: Receipt },
-    { to: `${base}/ressources`, label: 'Ressources', icon: BookOpen },
-    { to: `${base}/assistant`, label: 'Assistant IA', icon: Bot },
-  ]
-
-  const companyName = clientData?.companyName || user?.companyName || 'Client'
-  const email = user?.email || ''
 
   const handleLogout = () => {
     logout()
@@ -36,18 +22,18 @@ export function Sidebar() {
   return (
     <aside className="dark w-64 border-r border-border bg-card flex flex-col shrink-0 h-screen sticky top-0">
       <div className="h-16 flex items-center px-4 border-b border-border gap-3">
-        <div className="w-9 h-9 rounded-lg btn-gradient flex items-center justify-center text-white font-bold text-sm">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
           S
         </div>
         <div>
           <p className="text-sm font-semibold text-foreground">Systemia</p>
-          <p className="text-[11px] text-muted-foreground">Portail Client</p>
+          <p className="text-[11px] text-muted-foreground">Administration</p>
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">
-          Navigation
+          Gestion
         </p>
         <div className="space-y-0.5">
           {navItems.map((item) => (
@@ -73,12 +59,12 @@ export function Sidebar() {
 
       <div className="border-t border-border p-3">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-            <User className="h-4 w-4 text-muted-foreground" />
+          <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+            <Shield className="h-4 w-4 text-red-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{companyName}</p>
-            <p className="text-[11px] text-muted-foreground truncate">{email}</p>
+            <p className="text-sm font-medium text-foreground truncate">Admin</p>
+            <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
           </div>
           <button onClick={handleLogout} className="p-1.5 rounded-md hover:bg-secondary/50 transition-colors">
             <LogOut className="h-4 w-4 text-muted-foreground" />
