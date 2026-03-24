@@ -22,9 +22,7 @@ export function AdminSidebar() {
   return (
     <aside className="dark w-64 border-r border-border bg-card flex flex-col shrink-0 h-screen sticky top-0">
       <div className="h-16 flex items-center px-4 border-b border-border gap-3">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
-          S
-        </div>
+        <img src="/logo-systemia.png" alt="Systemia" className="w-9 h-9 rounded-lg object-cover" />
         <div>
           <p className="text-sm font-semibold text-foreground">Systemia</p>
           <p className="text-[11px] text-muted-foreground">Administration</p>

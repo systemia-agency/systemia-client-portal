@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import type { ClientData, ClientRequest, Resource } from '@/types'
-import { getClientData } from '@/store/clientStore'
+import { getClientData, updateClientData } from '@/store/clientStore'
 import { getRequestsByClient, addRequest as storeAddRequest, getAllResources } from '@/store/resourceStore'
 
 export interface DataContextType {
@@ -10,6 +10,7 @@ export interface DataContextType {
   isLoading: boolean
   refreshData: () => void
   addRequest: (request: Omit<ClientRequest, 'id' | 'clientSlug' | 'date' | 'status'>) => void
+  updateCustomPageData: (pageId: string, data: unknown) => void
 }
 
 export const DataContext = createContext<DataContextType | null>(null)
@@ -41,8 +42,16 @@ export function DataProvider({ slug, children }: { slug: string; children: React
     setRequests(getRequestsByClient(slug))
   }, [slug])
 
+  const updateCustomPageData = useCallback((pageId: string, data: unknown) => {
+    const current = getClientData(slug)
+    if (!current) return
+    const customPageData = { ...(current.customPageData || {}), [pageId]: data }
+    updateClientData(slug, { customPageData })
+    setClientData({ ...current, customPageData })
+  }, [slug])
+
   return (
-    <DataContext.Provider value={{ clientData, requests, resources, isLoading, refreshData, addRequest }}>
+    <DataContext.Provider value={{ clientData, requests, resources, isLoading, refreshData, addRequest, updateCustomPageData }}>
       {children}
     </DataContext.Provider>
   )

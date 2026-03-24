@@ -47,9 +47,7 @@ export function LoginPage() {
         <CardContent className="p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 rounded-xl btn-gradient flex items-center justify-center text-white font-bold text-2xl mb-4">
-              S
-            </div>
+            <img src="/logo-systemia.png" alt="Systemia" className="w-14 h-14 rounded-xl object-cover mb-4" />
             <h1 className="text-xl font-bold text-foreground">Systemia</h1>
             <p className="text-sm text-muted-foreground mt-1">Connectez-vous à votre espace</p>
           </div>

@@ -102,6 +102,36 @@ export interface Resource {
   type: string
 }
 
+// --- Custom Pages ---
+
+export type CustomPageType = 'financial-piloting'
+
+export interface CustomPage {
+  id: string
+  slug: string
+  label: string
+  icon: 'calculator' | 'euro' | 'trending-up' | 'pie-chart' | 'bar-chart' | 'clipboard'
+  type: CustomPageType
+}
+
+// Financial Piloting data
+export interface FinancialCharge {
+  id: string
+  label: string
+  amount: number
+  category: 'fixe' | 'variable'
+}
+
+export interface FinancialMonth {
+  month: string
+  revenue: number
+  charges: FinancialCharge[]
+}
+
+export interface FinancialPilotingData {
+  months: FinancialMonth[]
+}
+
 export interface ClientData {
   slug: string
   companyName: string
@@ -113,4 +143,6 @@ export interface ClientData {
   optimizations: Optimization[]
   invoices: Invoice[]
   subscription: Subscription
+  customPages?: CustomPage[]
+  customPageData?: Record<string, unknown>
 }

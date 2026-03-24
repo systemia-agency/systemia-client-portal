@@ -18,6 +18,7 @@ import { AdminClients } from '@/pages/admin/AdminClients'
 import { AdminClientEditor } from '@/pages/admin/AdminClientEditor'
 import { AdminDemandes } from '@/pages/admin/AdminDemandes'
 import { AdminRessources } from '@/pages/admin/AdminRessources'
+import { CustomPageRouter } from '@/pages/custom/CustomPageRouter'
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth()
@@ -52,6 +53,7 @@ function App() {
               <Route path="facturation" element={<Facturation />} />
               <Route path="ressources" element={<Ressources />} />
               <Route path="assistant" element={<Assistant />} />
+              <Route path="custom/:pageSlug" element={<CustomPageRouter />} />
             </Route>
           </Route>
 

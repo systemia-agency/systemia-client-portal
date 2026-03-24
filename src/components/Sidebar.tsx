@@ -2,7 +2,10 @@ import { NavLink, useParams, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BarChart3, FolderKanban, MessageSquare,
   Sparkles, Receipt, BookOpen, Bot, LogOut, User,
+  Calculator, Euro, TrendingUp, PieChart, Clipboard,
+  type LucideIcon,
 } from 'lucide-react'
+import type { CustomPage } from '@/types'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useClientData } from '@/hooks/useClientData'
@@ -12,6 +15,11 @@ export function Sidebar() {
   const { user, logout } = useAuth()
   const { clientData } = useClientData()
   const navigate = useNavigate()
+
+  const iconMap: Record<string, LucideIcon> = {
+    calculator: Calculator, euro: Euro, 'trending-up': TrendingUp,
+    'pie-chart': PieChart, 'bar-chart': BarChart3, clipboard: Clipboard,
+  }
 
   const base = `/client/${slug}`
   const navItems = [
@@ -25,6 +33,13 @@ export function Sidebar() {
     { to: `${base}/assistant`, label: 'Assistant IA', icon: Bot },
   ]
 
+  const customPages: CustomPage[] = clientData?.customPages || []
+  const customNavItems = customPages.map(p => ({
+    to: `${base}/custom/${p.slug}`,
+    label: p.label,
+    icon: iconMap[p.icon] || Calculator,
+  }))
+
   const companyName = clientData?.companyName || user?.companyName || 'Client'
   const email = user?.email || ''
 
@@ -36,9 +51,7 @@ export function Sidebar() {
   return (
     <aside className="dark w-64 border-r border-border bg-card flex flex-col shrink-0 h-screen sticky top-0">
       <div className="h-16 flex items-center px-4 border-b border-border gap-3">
-        <div className="w-9 h-9 rounded-lg btn-gradient flex items-center justify-center text-white font-bold text-sm">
-          S
-        </div>
+        <img src="/logo-systemia.png" alt="Systemia" className="w-9 h-9 rounded-lg object-cover" />
         <div>
           <p className="text-sm font-semibold text-foreground">Systemia</p>
           <p className="text-[11px] text-muted-foreground">Portail Client</p>
@@ -69,6 +82,32 @@ export function Sidebar() {
             </NavLink>
           ))}
         </div>
+        {customNavItems.length > 0 && (
+          <>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3 mt-6">
+              Outils
+            </p>
+            <div className="space-y-0.5">
+              {customNavItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                      isActive
+                        ? 'bg-secondary text-foreground accent-gradient-left font-medium'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
+                    )
+                  }
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          </>
+        )}
       </nav>
 
       <div className="border-t border-border p-3">

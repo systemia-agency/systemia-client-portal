@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { getClientBySlug, getClientData, updateClientData } from '@/store/clientStore'
-import type { ClientData, Project, Invoice, ActiveService, Optimization, TrafficDataEntry } from '@/types'
+import type { ClientData, Project, Invoice, ActiveService, Optimization, TrafficDataEntry, CustomPage, CustomPageType } from '@/types'
 import { ArrowLeft, Save, Plus, Trash2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const tabs = ['KPIs', 'Analytics', 'Projets', 'Services', 'Facturation'] as const
+const tabs = ['KPIs', 'Analytics', 'Projets', 'Services', 'Facturation', 'Menus'] as const
 type Tab = (typeof tabs)[number]
 
 export function AdminClientEditor() {
@@ -78,6 +78,7 @@ export function AdminClientEditor() {
       {activeTab === 'Projets' && <ProjetsTab data={data} setData={setData} />}
       {activeTab === 'Services' && <ServicesTab data={data} setData={setData} />}
       {activeTab === 'Facturation' && <FacturationTab data={data} setData={setData} />}
+      {activeTab === 'Menus' && <MenusTab data={data} setData={setData} />}
     </div>
   )
 }
@@ -395,5 +396,111 @@ function FacturationTab({ data, setData }: { data: ClientData; setData: (d: Clie
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// --- Menus Tab ---
+const pageTypeLabels: Record<CustomPageType, string> = {
+  'financial-piloting': 'Pilotage financier (Maîtrise des coûts)',
+}
+const iconOptions: CustomPage['icon'][] = ['calculator', 'euro', 'trending-up', 'pie-chart', 'bar-chart', 'clipboard']
+
+function MenusTab({ data, setData }: { data: ClientData; setData: (d: ClientData) => void }) {
+  const pages = data.customPages || []
+
+  const addPage = () => {
+    const newPage: CustomPage = {
+      id: `page-${Date.now()}`,
+      slug: `page-${Date.now()}`,
+      label: '',
+      icon: 'calculator',
+      type: 'financial-piloting',
+    }
+    setData({ ...data, customPages: [...pages, newPage] })
+  }
+
+  const removePage = (idx: number) => {
+    if (!confirm('Supprimer ce menu et ses données ?')) return
+    const page = pages[idx]
+    const newPages = pages.filter((_, i) => i !== idx)
+    const newPageData = { ...(data.customPageData || {}) }
+    delete newPageData[page.id]
+    setData({ ...data, customPages: newPages, customPageData: newPageData })
+  }
+
+  const updatePage = (idx: number, field: keyof CustomPage, value: string) => {
+    const newPages = [...pages]
+    newPages[idx] = { ...newPages[idx], [field]: value }
+    // Auto-generate slug from label
+    if (field === 'label') {
+      newPages[idx].slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `page-${Date.now()}`
+    }
+    setData({ ...data, customPages: newPages })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Menus sur-mesure</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Ajoutez des pages personnalisées à la navigation du client.</p>
+          </div>
+          <Button variant="outline" onClick={addPage}><Plus className="h-4 w-4" />Ajouter un menu</Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {pages.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">Aucun menu sur-mesure. Ce client n'a que les pages standard.</p>
+        ) : (
+          <div className="space-y-4">
+            {pages.map((page, idx) => (
+              <div key={page.id} className="p-4 rounded-lg border border-border bg-background space-y-3">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline">Menu #{idx + 1}</Badge>
+                  <Button variant="ghost" size="sm" onClick={() => removePage(idx)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-foreground block mb-1.5">Nom du menu</label>
+                    <input
+                      value={page.label}
+                      onChange={e => updatePage(idx, 'label', e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      placeholder="Maîtrise des coûts"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground block mb-1.5">Type de page</label>
+                    <select
+                      value={page.type}
+                      onChange={e => updatePage(idx, 'type', e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {Object.entries(pageTypeLabels).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-foreground block mb-1.5">Icône</label>
+                    <select
+                      value={page.icon}
+                      onChange={e => updatePage(idx, 'icon', e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {iconOptions.map(icon => (
+                        <option key={icon} value={icon}>{icon}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">URL : /client/{data.slug}/custom/{page.slug}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
