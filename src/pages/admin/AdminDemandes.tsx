@@ -34,7 +34,7 @@ export function AdminDemandes() {
         <p className="text-muted-foreground text-sm mt-1">Toutes les demandes clients de la plateforme.</p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -69,7 +69,7 @@ export function AdminDemandes() {
             <div className="space-y-3">
               {filtered.map(req => (
                 <div key={req.id} className="p-4 rounded-lg bg-background border border-border hover:shadow-sm transition-shadow">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-sm font-semibold text-foreground">{req.title}</h3>
@@ -82,7 +82,7 @@ export function AdminDemandes() {
                         <span>{new Date(req.date).toLocaleDateString('fr-FR')}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                       <Badge variant={statusVariant[req.status]}>{statusLabel[req.status]}</Badge>
                       <select
                         value={req.status}

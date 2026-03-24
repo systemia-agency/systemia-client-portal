@@ -38,7 +38,7 @@ export function AdminClients() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Clients</h1>
           <p className="text-muted-foreground text-sm mt-1">Gérez les comptes clients de la plateforme.</p>
@@ -123,7 +123,7 @@ export function AdminClients() {
           {clients.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">Aucun client. Créez-en un pour commencer.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="overflow-x-auto"><div className="min-w-[700px] space-y-2">
               <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 <span>Entreprise</span><span>Email</span><span>Slug</span><span>Créé le</span><span className="text-right">Actions</span>
               </div>
@@ -148,7 +148,7 @@ export function AdminClients() {
                   </div>
                 </div>
               ))}
-            </div>
+            </div></div>
           )}
         </CardContent>
       </Card>

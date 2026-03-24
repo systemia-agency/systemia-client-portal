@@ -139,3 +139,11 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: hsl(220 16% 70%); }
 .dark ::-webkit-scrollbar-thumb { background: hsl(225 25% 20%); }
 .dark ::-webkit-scrollbar-thumb:hover { background: hsl(225 25% 30%); }
+
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-in .2s ease-out;
+}

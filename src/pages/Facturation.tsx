@@ -18,7 +18,7 @@ export function Facturation() {
       </div>
       <Card className="accent-gradient-top">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-gradient-to-br from-blue-50 to-violet-50"><CreditCard className="h-6 w-6 text-[var(--sys-violet)]" /></div>
               <div>
@@ -44,7 +44,7 @@ export function Facturation() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className="overflow-x-auto"><div className="min-w-[600px] space-y-2">
             <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <span>Référence</span><span>Date</span><span>Description</span><span>Montant</span><span className="text-right">Action</span>
             </div>
@@ -57,7 +57,7 @@ export function Facturation() {
                 <div className="text-right"><Button variant="ghost" size="sm"><Download className="h-4 w-4" />PDF</Button></div>
               </div>
             ))}
-          </div>
+          </div></div>
         </CardContent>
       </Card>
     </div>

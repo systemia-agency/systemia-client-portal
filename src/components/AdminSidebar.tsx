@@ -10,7 +10,7 @@ const navItems = [
   { to: '/admin/ressources', label: 'Ressources', icon: BookOpen },
 ]
 
-export function AdminSidebar() {
+export function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -39,9 +39,10 @@ export function AdminSidebar() {
               key={item.to}
               to={item.to}
               end={item.end}
+              onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 lg:py-2 rounded-md text-sm transition-colors',
                   isActive
                     ? 'bg-secondary text-foreground accent-gradient-left font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',

@@ -35,7 +35,7 @@ export function AdminClientEditor() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4">
           <Link to="/admin/clients">
             <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" />Retour</Button>
@@ -56,7 +56,7 @@ export function AdminClientEditor() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab}
@@ -156,7 +156,7 @@ function AnalyticsTab({ data, setData }: { data: ClientData; setData: (d: Client
         {data.trafficData.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">Aucune donnée. Ajoutez un mois pour commencer.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="overflow-x-auto"><div className="min-w-[600px] space-y-2">
             <div className="grid grid-cols-6 gap-3 px-2 text-xs font-semibold text-muted-foreground uppercase">
               <span>Mois</span><span>Trafic</span><span>Conversions</span><span>Leads</span><span>CPL (€)</span><span></span>
             </div>
@@ -170,7 +170,7 @@ function AnalyticsTab({ data, setData }: { data: ClientData; setData: (d: Client
                 <Button variant="ghost" size="sm" onClick={() => removeRow(idx)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
               </div>
             ))}
-          </div>
+          </div></div>
         )}
       </CardContent>
     </Card>
@@ -373,7 +373,7 @@ function FacturationTab({ data, setData }: { data: ClientData; setData: (d: Clie
           {data.invoices.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">Aucune facture.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="overflow-x-auto"><div className="min-w-[600px] space-y-2">
               <div className="grid grid-cols-6 gap-3 px-2 text-xs font-semibold text-muted-foreground uppercase">
                 <span>Référence</span><span>Date</span><span>Description</span><span>Montant (€)</span><span>Statut</span><span></span>
               </div>
@@ -391,7 +391,7 @@ function FacturationTab({ data, setData }: { data: ClientData; setData: (d: Clie
                   <Button variant="ghost" size="sm" onClick={() => removeInvoice(idx)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
                 </div>
               ))}
-            </div>
+            </div></div>
           )}
         </CardContent>
       </Card>
