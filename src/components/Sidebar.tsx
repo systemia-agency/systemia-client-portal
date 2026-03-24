@@ -2,7 +2,7 @@ import { NavLink, useParams, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BarChart3, FolderKanban, MessageSquare,
   Sparkles, Receipt, BookOpen, Bot, LogOut, User,
-  Calculator, Euro, TrendingUp, PieChart, Clipboard,
+  Calculator, Euro, TrendingUp, PieChart, Clipboard, Users,
   type LucideIcon,
 } from 'lucide-react'
 import type { CustomPage } from '@/types'
@@ -18,7 +18,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const iconMap: Record<string, LucideIcon> = {
     calculator: Calculator, euro: Euro, 'trending-up': TrendingUp,
-    'pie-chart': PieChart, 'bar-chart': BarChart3, clipboard: Clipboard,
+    'pie-chart': PieChart, 'bar-chart': BarChart3, clipboard: Clipboard, users: Users,
   }
 
   const base = `/client/${slug}`

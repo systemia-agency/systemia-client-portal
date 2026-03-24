@@ -402,8 +402,9 @@ function FacturationTab({ data, setData }: { data: ClientData; setData: (d: Clie
 // --- Menus Tab ---
 const pageTypeLabels: Record<CustomPageType, string> = {
   'financial-piloting': 'Pilotage financier (Maîtrise des coûts)',
+  'leads-crm': 'CRM Leads (Gestion de prospects)',
 }
-const iconOptions: CustomPage['icon'][] = ['calculator', 'euro', 'trending-up', 'pie-chart', 'bar-chart', 'clipboard']
+const iconOptions: CustomPage['icon'][] = ['calculator', 'euro', 'trending-up', 'pie-chart', 'bar-chart', 'clipboard', 'users']
 
 function MenusTab({ data, setData }: { data: ClientData; setData: (d: ClientData) => void }) {
   const pages = data.customPages || []

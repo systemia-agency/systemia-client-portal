@@ -6,7 +6,7 @@ import {
 } from '@/data/mock'
 
 const INIT_KEY = 'systemia_initialized'
-const SEED_VERSION = '2'
+const SEED_VERSION = '3'
 const USERS_KEY = 'systemia_users'
 const REQUESTS_KEY = 'systemia_requests'
 const RESOURCES_KEY = 'systemia_resources'
@@ -64,6 +64,20 @@ export function seedData(): void {
     optimizations,
     invoices: invoices.map(i => ({ ...i, status: i.status as 'payee' | 'en_attente' | 'en_retard' })),
     subscription,
+    customPages: [
+      { id: 'leads-test', slug: 'leads', label: 'Vos leads', icon: 'users', type: 'leads-crm' },
+    ],
+    customPageData: {
+      'leads-test': {
+        leads: [
+          { id: 'lead-1', name: 'Marie Lambert', email: 'marie@example.com', phone: '+32 470 123 456', company: 'Lambert & Fils', source: 'Meta Ads', status: 'qualifie', value: 3500, notes: 'Intéressée par nos services SEO', createdAt: '2026-03-10T10:00:00Z', updatedAt: '2026-03-18T14:30:00Z' },
+          { id: 'lead-2', name: 'Thomas Renard', email: 'thomas@renard.be', phone: '+32 499 876 543', company: 'Renard Consulting', source: 'Google Ads', status: 'proposition', value: 8000, notes: 'Demande de devis pour campagne complète', createdAt: '2026-03-05T09:00:00Z', updatedAt: '2026-03-20T11:00:00Z' },
+          { id: 'lead-3', name: 'Sophie Dumont', email: 'sophie.dumont@gmail.com', phone: '', company: '', source: 'Site web', status: 'nouveau', value: 0, notes: '', createdAt: '2026-03-22T16:45:00Z', updatedAt: '2026-03-22T16:45:00Z' },
+          { id: 'lead-4', name: 'Pierre Mercier', email: 'p.mercier@mercier-immo.be', phone: '+32 486 555 111', company: 'Mercier Immobilier', source: 'Recommandation', status: 'gagne', value: 12000, notes: 'Contrat signé pour 12 mois', createdAt: '2026-02-15T08:00:00Z', updatedAt: '2026-03-01T10:00:00Z' },
+          { id: 'lead-5', name: 'Isabelle Fontaine', email: 'i.fontaine@outlook.com', phone: '+32 472 333 444', company: 'Fontaine Design', source: 'Meta Ads', status: 'contacte', value: 2500, notes: 'Premier appel prévu semaine prochaine', createdAt: '2026-03-19T13:00:00Z', updatedAt: '2026-03-21T09:30:00Z' },
+        ],
+      },
+    },
   }
   setItem(`systemia_client_test`, testClientData)
 
@@ -138,9 +152,11 @@ export function seedData(): void {
     subscription: { plan: 'Performance E-commerce', monthly: 1500, nextBilling: '2026-04-01', startDate: '2026-01-01' },
     customPages: [
       { id: 'financial-mda', slug: 'maitrise-couts', label: 'Maîtrise des coûts', icon: 'calculator', type: 'financial-piloting' },
+      { id: 'leads-mda', slug: 'leads', label: 'Vos leads', icon: 'users', type: 'leads-crm' },
     ],
     customPageData: {
       'financial-mda': mdaFinancialData,
+      'leads-mda': { leads: [] },
     },
   }
   setItem('systemia_client_boutique-mda', mdaClientData)

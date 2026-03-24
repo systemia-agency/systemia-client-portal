@@ -104,14 +104,36 @@ export interface Resource {
 
 // --- Custom Pages ---
 
-export type CustomPageType = 'financial-piloting'
+export type CustomPageType = 'financial-piloting' | 'leads-crm'
 
 export interface CustomPage {
   id: string
   slug: string
   label: string
-  icon: 'calculator' | 'euro' | 'trending-up' | 'pie-chart' | 'bar-chart' | 'clipboard'
+  icon: 'calculator' | 'euro' | 'trending-up' | 'pie-chart' | 'bar-chart' | 'clipboard' | 'users'
   type: CustomPageType
+}
+
+// Leads CRM data
+export type LeadStatus = 'nouveau' | 'contacte' | 'qualifie' | 'proposition' | 'gagne' | 'perdu'
+export type LeadSource = 'Meta Ads' | 'Google Ads' | 'Site web' | 'Recommandation' | 'Autre'
+
+export interface Lead {
+  id: string
+  name: string
+  email: string
+  phone: string
+  company: string
+  source: LeadSource
+  status: LeadStatus
+  value: number
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface LeadsCrmData {
+  leads: Lead[]
 }
 
 // Financial Piloting data
