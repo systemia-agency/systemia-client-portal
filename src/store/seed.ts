@@ -6,12 +6,16 @@ import {
 } from '@/data/mock'
 
 const INIT_KEY = 'systemia_initialized'
+const SEED_VERSION = '2'
 const USERS_KEY = 'systemia_users'
 const REQUESTS_KEY = 'systemia_requests'
 const RESOURCES_KEY = 'systemia_resources'
 
 export function seedData(): void {
-  if (getItem<string | null>(INIT_KEY, null) === 'true') return
+  if (getItem<string | null>(INIT_KEY, null) === SEED_VERSION) return
+
+  // Clear old data on version change
+  Object.keys(localStorage).filter(k => k.startsWith('systemia_')).forEach(k => localStorage.removeItem(k))
 
   // Create admin user
   const adminUser: StoredUser = {
@@ -145,5 +149,5 @@ export function seedData(): void {
   const seededResources: Resource[] = resources.map(r => ({ ...r }))
   setItem<Resource[]>(RESOURCES_KEY, seededResources)
 
-  setItem(INIT_KEY, 'true')
+  setItem(INIT_KEY, SEED_VERSION)
 }
