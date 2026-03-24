@@ -147,3 +147,70 @@ body {
 .animate-slide-in {
   animation: slide-in .2s ease-out;
 }
+
+/* Welcome animation */
+.welcome-bg {
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, hsl(228 40% 10%) 0%, hsl(228 40% 4%) 70%, hsl(228 50% 2%) 100%);
+}
+
+.welcome-star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: star-pulse ease-in-out infinite alternate;
+}
+
+@keyframes star-pulse {
+  from { opacity: 0.1; }
+  to { opacity: 0.7; }
+}
+
+.welcome-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform-origin: center center;
+}
+
+.welcome-orbit-1 {
+  width: 120px; height: 120px;
+  margin-left: -60px; margin-top: -60px;
+  animation: orbit-spin 3s linear infinite;
+}
+.welcome-orbit-2 {
+  width: 200px; height: 200px;
+  margin-left: -100px; margin-top: -100px;
+  animation: orbit-spin 5s linear infinite reverse;
+}
+.welcome-orbit-3 {
+  width: 280px; height: 280px;
+  margin-left: -140px; margin-top: -140px;
+  animation: orbit-spin 7s linear infinite;
+}
+.welcome-orbit-4 {
+  width: 80px; height: 80px;
+  margin-left: -40px; margin-top: -40px;
+  animation: orbit-spin 2s linear infinite reverse;
+}
+
+@media (min-width: 640px) {
+  .welcome-orbit-1 { width: 160px; height: 160px; margin-left: -80px; margin-top: -80px; }
+  .welcome-orbit-2 { width: 260px; height: 260px; margin-left: -130px; margin-top: -130px; }
+  .welcome-orbit-3 { width: 360px; height: 360px; margin-left: -180px; margin-top: -180px; }
+  .welcome-orbit-4 { width: 100px; height: 100px; margin-left: -50px; margin-top: -50px; }
+}
+
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.welcome-connections {
+  animation: connections-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes connections-pulse {
+  from { opacity: 0.3; }
+  to { opacity: 0.7; }
+}

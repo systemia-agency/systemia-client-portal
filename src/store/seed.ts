@@ -6,7 +6,7 @@ import {
 } from '@/data/mock'
 
 const INIT_KEY = 'systemia_initialized'
-const SEED_VERSION = '3'
+const SEED_VERSION = '4'
 const USERS_KEY = 'systemia_users'
 const REQUESTS_KEY = 'systemia_requests'
 const RESOURCES_KEY = 'systemia_resources'
@@ -70,11 +70,20 @@ export function seedData(): void {
     customPageData: {
       'leads-test': {
         leads: [
-          { id: 'lead-1', name: 'Marie Lambert', email: 'marie@example.com', phone: '+32 470 123 456', company: 'Lambert & Fils', source: 'Meta Ads', status: 'qualifie', value: 3500, notes: 'Intéressée par nos services SEO', createdAt: '2026-03-10T10:00:00Z', updatedAt: '2026-03-18T14:30:00Z' },
-          { id: 'lead-2', name: 'Thomas Renard', email: 'thomas@renard.be', phone: '+32 499 876 543', company: 'Renard Consulting', source: 'Google Ads', status: 'proposition', value: 8000, notes: 'Demande de devis pour campagne complète', createdAt: '2026-03-05T09:00:00Z', updatedAt: '2026-03-20T11:00:00Z' },
-          { id: 'lead-3', name: 'Sophie Dumont', email: 'sophie.dumont@gmail.com', phone: '', company: '', source: 'Site web', status: 'nouveau', value: 0, notes: '', createdAt: '2026-03-22T16:45:00Z', updatedAt: '2026-03-22T16:45:00Z' },
-          { id: 'lead-4', name: 'Pierre Mercier', email: 'p.mercier@mercier-immo.be', phone: '+32 486 555 111', company: 'Mercier Immobilier', source: 'Recommandation', status: 'gagne', value: 12000, notes: 'Contrat signé pour 12 mois', createdAt: '2026-02-15T08:00:00Z', updatedAt: '2026-03-01T10:00:00Z' },
-          { id: 'lead-5', name: 'Isabelle Fontaine', email: 'i.fontaine@outlook.com', phone: '+32 472 333 444', company: 'Fontaine Design', source: 'Meta Ads', status: 'contacte', value: 2500, notes: 'Premier appel prévu semaine prochaine', createdAt: '2026-03-19T13:00:00Z', updatedAt: '2026-03-21T09:30:00Z' },
+          { id: 'lead-1', name: 'Marie Lambert', email: 'marie@lambert-fils.be', phone: '+32 470 123 456', company: 'Lambert & Fils', source: 'Meta Ads', status: 'gagne', value: 18500, notes: 'Contrat signé — Pack Performance 12 mois. Cliente ravie du premier mois.', createdAt: '2026-01-15T10:00:00Z', updatedAt: '2026-02-20T14:30:00Z' },
+          { id: 'lead-2', name: 'Thomas Renard', email: 'thomas@renard-consulting.be', phone: '+32 499 876 543', company: 'Renard Consulting', source: 'Google Ads', status: 'proposition', value: 24000, notes: 'Proposition envoyée pour gestion complète Google + Meta. RDV closing jeudi.', createdAt: '2026-03-05T09:00:00Z', updatedAt: '2026-03-22T11:00:00Z' },
+          { id: 'lead-3', name: 'Sophie Dumont', email: 'sophie@dumont-archi.be', phone: '+32 475 222 333', company: 'Dumont Architecture', source: 'Site web', status: 'qualifie', value: 8500, notes: 'Cabinet d\'architectes — intéressée par acquisition de leads via Google.', createdAt: '2026-03-18T16:45:00Z', updatedAt: '2026-03-21T10:00:00Z' },
+          { id: 'lead-4', name: 'Pierre Mercier', email: 'p.mercier@mercier-immo.be', phone: '+32 486 555 111', company: 'Mercier Immobilier', source: 'Recommandation', status: 'gagne', value: 36000, notes: 'Contrat premium 24 mois signé. Meilleur client du trimestre.', createdAt: '2026-01-10T08:00:00Z', updatedAt: '2026-02-01T10:00:00Z' },
+          { id: 'lead-5', name: 'Isabelle Fontaine', email: 'isabelle@fontaine-design.com', phone: '+32 472 333 444', company: 'Fontaine Design', source: 'Meta Ads', status: 'contacte', value: 5500, notes: 'Appel découverte réalisé — très intéressée, attend le devis.', createdAt: '2026-03-19T13:00:00Z', updatedAt: '2026-03-23T09:30:00Z' },
+          { id: 'lead-6', name: 'Antoine Dubois', email: 'a.dubois@dubois-traiteur.be', phone: '+32 468 777 888', company: 'Dubois Traiteur', source: 'Google Ads', status: 'gagne', value: 14400, notes: 'Signé pour 12 mois — Google Ads + Landing Page.', createdAt: '2026-02-08T11:00:00Z', updatedAt: '2026-02-28T16:00:00Z' },
+          { id: 'lead-7', name: 'Nathalie Petit', email: 'nathalie@petit-beaute.be', phone: '+32 474 111 222', company: 'Petit Beauté', source: 'Meta Ads', status: 'qualifie', value: 7200, notes: 'Salon de beauté — veut augmenter sa visibilité locale. Budget ok.', createdAt: '2026-03-12T14:00:00Z', updatedAt: '2026-03-20T17:00:00Z' },
+          { id: 'lead-8', name: 'Marc Leroy', email: 'marc@leroy-avocat.be', phone: '+32 479 444 555', company: 'Cabinet Leroy', source: 'Google Ads', status: 'proposition', value: 15000, notes: 'Avocat spécialisé droit des affaires. Proposition Google Ads envoyée.', createdAt: '2026-03-14T10:30:00Z', updatedAt: '2026-03-22T14:00:00Z' },
+          { id: 'lead-9', name: 'Laura Van den Berg', email: 'laura@vdb-coaching.be', phone: '+32 471 666 777', company: 'VDB Coaching', source: 'Site web', status: 'nouveau', value: 0, notes: 'A rempli le formulaire de contact — à rappeler.', createdAt: '2026-03-23T08:15:00Z', updatedAt: '2026-03-23T08:15:00Z' },
+          { id: 'lead-10', name: 'Julien Maes', email: 'julien@maes-auto.be', phone: '+32 478 888 999', company: 'Maes Automobiles', source: 'Recommandation', status: 'contacte', value: 12000, notes: 'Recommandé par Pierre Mercier. Garage premium, gros potentiel.', createdAt: '2026-03-20T09:00:00Z', updatedAt: '2026-03-23T11:00:00Z' },
+          { id: 'lead-11', name: 'Catherine Wouters', email: 'c.wouters@wouters-pharma.be', phone: '+32 476 333 222', company: 'Pharmacie Wouters', source: 'Meta Ads', status: 'perdu', value: 4800, notes: 'A choisi un concurrent — budget trop serré pour notre offre.', createdAt: '2026-02-20T15:00:00Z', updatedAt: '2026-03-10T12:00:00Z' },
+          { id: 'lead-12', name: 'François Martin', email: 'f.martin@martin-construct.be', phone: '+32 477 555 666', company: 'Martin Construction', source: 'Google Ads', status: 'gagne', value: 21600, notes: 'Signé ! Pack complet 18 mois — Google + Meta + Landing Page.', createdAt: '2026-02-01T10:00:00Z', updatedAt: '2026-03-05T09:00:00Z' },
+          { id: 'lead-13', name: 'Emma Claes', email: 'emma@claes-events.be', phone: '+32 473 444 111', company: 'Claes Events', source: 'Meta Ads', status: 'nouveau', value: 0, notes: 'Organisatrice d\'événements — demande info via Instagram.', createdAt: '2026-03-23T14:30:00Z', updatedAt: '2026-03-23T14:30:00Z' },
+          { id: 'lead-14', name: 'David Henrard', email: 'david@henrard-tech.be', phone: '+32 475 999 000', company: 'Henrard Technologies', source: 'Recommandation', status: 'qualifie', value: 28000, notes: 'Entreprise IT B2B. Gros budget, veut dominer Google sur son marché.', createdAt: '2026-03-08T11:30:00Z', updatedAt: '2026-03-21T16:00:00Z' },
         ],
       },
     },

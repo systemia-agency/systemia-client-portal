@@ -1,23 +1,31 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useCallback, type FormEvent } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Lock, Mail } from 'lucide-react'
+import { WelcomeAnimation } from './WelcomeAnimation'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [welcomeTarget, setWelcomeTarget] = useState('')
+  const [welcomeName, setWelcomeName] = useState('')
   const { login, isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
 
-  // If already authenticated, redirect
-  if (isAuthenticated && user) {
+  // If already authenticated, redirect (skip animation)
+  if (isAuthenticated && user && !showWelcome) {
     const target = user.role === 'admin' ? '/admin' : `/client/${user.slug}`
     return <Navigate to={target} replace />
   }
+
+  const handleAnimationComplete = useCallback(() => {
+    navigate(welcomeTarget, { replace: true })
+  }, [navigate, welcomeTarget])
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -28,13 +36,13 @@ export function LoginPage() {
     setLoading(false)
 
     if (result.success) {
-      // Re-read user from auth context after login
       const session = JSON.parse(localStorage.getItem('systemia_auth') || '{}')
       const loggedUser = session.user
-      if (loggedUser?.role === 'admin') {
-        navigate('/admin', { replace: true })
-      } else if (loggedUser) {
-        navigate(`/client/${loggedUser.slug}`, { replace: true })
+      if (loggedUser) {
+        const target = loggedUser.role === 'admin' ? '/admin' : `/client/${loggedUser.slug}`
+        setWelcomeTarget(target)
+        setWelcomeName(loggedUser.companyName || 'Admin')
+        setShowWelcome(true)
       }
     } else {
       setError(result.error || 'Erreur de connexion.')
@@ -42,6 +50,8 @@ export function LoginPage() {
   }
 
   return (
+    <>
+    {showWelcome && <WelcomeAnimation companyName={welcomeName} onComplete={handleAnimationComplete} />}
     <div className="min-h-screen systemia-bg flex items-center justify-center p-4">
       <Card className="w-full max-w-md accent-gradient-top">
         <CardContent className="p-8">
@@ -102,5 +112,6 @@ export function LoginPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
