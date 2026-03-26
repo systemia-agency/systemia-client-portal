@@ -34,6 +34,8 @@ function computeFormulaAmount(charge: FinancialCharge, month: FinancialMonth, fp
       }
       return Math.round(total * 100) / 100
     }
+    case 'per_order':
+      return Math.round((month.orders || 0) * charge.formula.unitCost * 100) / 100
     default:
       return charge.amount
   }
@@ -48,6 +50,8 @@ function getFormulaLabel(charge: FinancialCharge, fpData: FinancialPilotingData)
       const mix = fpData.paymentMix || []
       return `Auto : frais pondérés (${mix.map(m => m.name).join(', ')})`
     }
+    case 'per_order':
+      return `Auto : ${charge.formula.unitCost.toFixed(2)}€ × commandes`
     default:
       return null
   }

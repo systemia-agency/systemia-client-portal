@@ -143,6 +143,7 @@ export type ChargeDependsOn = 'ca' | 'commandes' | 'fixe'
 export type ChargeFormula =
   | { type: 'percentage_of_ca'; rate: number } // e.g. 0.40 = 40% of CA HTVA
   | { type: 'blended_transaction_fees' } // uses paymentMix config
+  | { type: 'per_order'; unitCost: number } // e.g. 4.20 = 4.20€ × nb commandes
   | null
 
 export interface PaymentMethodConfig {

@@ -6,7 +6,7 @@ import {
 } from '@/data/mock'
 
 const INIT_KEY = 'systemia_initialized'
-const SEED_VERSION = '6'
+const SEED_VERSION = '7'
 const USERS_KEY = 'systemia_users'
 const REQUESTS_KEY = 'systemia_requests'
 const RESOURCES_KEY = 'systemia_resources'
@@ -104,7 +104,7 @@ export function seedData(): void {
   // Formulas:
   // - Achat marchandise = CA / 2.5 (markup x2.5 HTVA)
   // - Frais de transaction = blended rate based on payment mix (Viva Wallet 46.3%, Klarna 40.3%, PayPal 11.3%, gift cards 2.1%)
-  const mdaMakeCharges = (prefix: string, metaAds: number, googleAds: number, expedition: number, emballages: number, preparateur: number, saas: number) => [
+  const mdaMakeCharges = (prefix: string, metaAds: number, googleAds: number, preparateur: number, saas: number) => [
     { id: `${prefix}-1`, label: 'Loyer entrepôt', amount: 2000, category: 'fixe' as const, dependsOn: 'fixe' as const },
     { id: `${prefix}-2`, label: 'Charges salariales', amount: 4000, category: 'fixe' as const, dependsOn: 'fixe' as const },
     { id: `${prefix}-3`, label: 'Assurances', amount: 450, category: 'fixe' as const, dependsOn: 'fixe' as const },
@@ -115,8 +115,8 @@ export function seedData(): void {
     { id: `${prefix}-5b`, label: 'Google Ads', amount: googleAds, category: 'variable' as const, dependsOn: 'ca' as const },
     { id: `${prefix}-6`, label: 'Achat marchandise', amount: 0, category: 'variable' as const, dependsOn: 'ca' as const, formula: { type: 'percentage_of_ca' as const, rate: 0.40 } },
     { id: `${prefix}-6b`, label: 'Frais de transaction', amount: 0, category: 'variable' as const, dependsOn: 'ca' as const, formula: { type: 'blended_transaction_fees' as const } },
-    { id: `${prefix}-7`, label: 'Frais d\'expédition', amount: expedition, category: 'variable' as const, dependsOn: 'commandes' as const },
-    { id: `${prefix}-8`, label: 'Emballages', amount: emballages, category: 'variable' as const, dependsOn: 'commandes' as const },
+    { id: `${prefix}-7`, label: 'Frais d\'expédition', amount: 0, category: 'variable' as const, dependsOn: 'commandes' as const, formula: { type: 'per_order' as const, unitCost: 4.20 } },
+    { id: `${prefix}-8`, label: 'Emballages', amount: 0, category: 'variable' as const, dependsOn: 'commandes' as const, formula: { type: 'per_order' as const, unitCost: 0.50 } },
     { id: `${prefix}-8b`, label: 'Préparateur de commande', amount: preparateur, category: 'variable' as const, dependsOn: 'commandes' as const },
   ]
 
@@ -134,7 +134,7 @@ export function seedData(): void {
         month: 'Mars 2026',
         revenue: 33000,
         orders: 280,
-        charges: mdaMakeCharges('mar', 5500, 1800, 1400, 500, 2100, 195),
+        charges: mdaMakeCharges('mar', 5500, 1800, 2100, 195),
       },
     ],
   }
