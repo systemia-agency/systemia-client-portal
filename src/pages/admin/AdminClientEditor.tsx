@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { getClientBySlug, getClientData, updateClientData } from '@/store/clientStore'
-import type { ClientData, Project, Invoice, ActiveService, Optimization, TrafficDataEntry, CustomPage, CustomPageType, StandardMenuId } from '@/types'
+import type { ClientData, Project, Invoice, ActiveService, Optimization, TrafficDataEntry, CustomPage, CustomPageType, StandardMenuId, FinancialPilotingData, FinancialCharge, PaymentMethodConfig } from '@/types'
 import { ALL_STANDARD_MENUS } from '@/types'
-import { ArrowLeft, Save, Plus, Trash2, Check } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Check, Eye, HelpCircle, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const tabs = ['KPIs', 'Analytics', 'Projets', 'Services', 'Facturation', 'Menus'] as const
+const tabs = ['KPIs', 'Analytics', 'Projets', 'Services', 'Facturation', 'Menus', 'Formules'] as const
 type Tab = (typeof tabs)[number]
 
 export function AdminClientEditor() {
@@ -47,8 +47,8 @@ export function AdminClientEditor() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link to={`/client/${slug}`} target="_blank">
-            <Button variant="outline" size="sm">Prévisualiser</Button>
+          <Link to={`/client/${slug}?admin_preview=1`}>
+            <Button variant="outline" size="sm"><Eye className="h-4 w-4" />Voir comme le client</Button>
           </Link>
           <Button variant="gradient" onClick={save}>
             {saved ? <><Check className="h-4 w-4" />Sauvegardé</> : <><Save className="h-4 w-4" />Sauvegarder</>}
@@ -80,6 +80,7 @@ export function AdminClientEditor() {
       {activeTab === 'Services' && <ServicesTab data={data} setData={setData} />}
       {activeTab === 'Facturation' && <FacturationTab data={data} setData={setData} />}
       {activeTab === 'Menus' && <MenusTab data={data} setData={setData} />}
+      {activeTab === 'Formules' && <FormulesTab data={data} setData={setData} />}
     </div>
   )
 }
@@ -394,6 +395,310 @@ function FacturationTab({ data, setData }: { data: ClientData; setData: (d: Clie
               ))}
             </div></div>
           )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// --- Formules Tab ---
+function FormulesTab({ data, setData }: { data: ClientData; setData: (d: ClientData) => void }) {
+  const [showHelp, setShowHelp] = useState(false)
+  const financialPages = (data.customPages || []).filter(p => p.type === 'financial-piloting')
+
+  if (financialPages.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-muted-foreground">Aucune page de pilotage financier configurée.</p>
+          <p className="text-sm text-muted-foreground mt-1">Ajoutez un menu sur-mesure de type &quot;Pilotage financier&quot; dans l&apos;onglet Menus.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Help toggle */}
+      <div className="flex justify-end">
+        <Button variant={showHelp ? 'default' : 'outline'} size="sm" onClick={() => setShowHelp(!showHelp)}>
+          <HelpCircle className="h-4 w-4" />{showHelp ? 'Masquer l\'aide' : 'Comment écrire les formules ?'}
+        </Button>
+      </div>
+
+      {showHelp && (
+        <Card className="accent-gradient-top border-blue-200 bg-blue-50/50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Guide des formules</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowHelp(false)}><X className="h-4 w-4" /></Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div>
+              <h4 className="font-semibold mb-1">1. Manuel (pas de formule)</h4>
+              <p className="text-muted-foreground">Le montant est saisi à la main. Le client peut le modifier si &quot;éditable&quot; est coché.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-1">2. Pourcentage du CA</h4>
+              <p className="text-muted-foreground">Le montant = <code className="bg-white px-1 rounded">CA × taux</code>. Ex : taux 0.40 = 40% du CA.</p>
+              <p className="text-muted-foreground">Utile pour : <strong>achat marchandise</strong> (si markup connu), commissions, redevances.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-1">3. Coût par commande</h4>
+              <p className="text-muted-foreground">Le montant = <code className="bg-white px-1 rounded">coût unitaire × nb commandes</code>. Ex : 4.20€/commande.</p>
+              <p className="text-muted-foreground">Utile pour : <strong>expédition, emballages, préparation</strong>, frais logistiques.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-1">4. Frais de transaction pondérés</h4>
+              <p className="text-muted-foreground">Calcul automatique basé sur le mix de paiement configuré ci-dessous.</p>
+              <p className="text-muted-foreground">Pour chaque moyen de paiement : <code className="bg-white px-1 rounded">(CA × part%) × commission% + (commandes × part%) × frais fixe/tx</code></p>
+              <p className="text-muted-foreground">Utile pour : <strong>Shopify Payments, Klarna, PayPal, Stripe</strong>, etc.</p>
+            </div>
+            <div className="p-3 bg-white rounded-lg border">
+              <p className="font-medium text-xs text-muted-foreground uppercase tracking-wider mb-2">Exemple MDA — Mars 2026</p>
+              <p className="text-xs text-muted-foreground">CA = 33 000€, 280 commandes</p>
+              <p className="text-xs text-muted-foreground">Achat marchandise (40% CA) → <strong>13 200€</strong></p>
+              <p className="text-xs text-muted-foreground">Expédition (4.20€/cmd) → <strong>1 176€</strong></p>
+              <p className="text-xs text-muted-foreground">Frais tx (mix pondéré) → <strong>829€</strong></p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {financialPages.map(page => {
+        const fpData = (data.customPageData?.[page.id] || { months: [] }) as FinancialPilotingData
+        return <FinancialFormulasEditor key={page.id} page={page} fpData={fpData} data={data} setData={setData} />
+      })}
+    </div>
+  )
+}
+
+function FinancialFormulasEditor({ page, fpData, data, setData }: {
+  page: CustomPage
+  fpData: FinancialPilotingData
+  data: ClientData
+  setData: (d: ClientData) => void
+}) {
+  const updateFpData = (updates: Partial<FinancialPilotingData>) => {
+    const newFp = { ...fpData, ...updates }
+    setData({ ...data, customPageData: { ...(data.customPageData || {}), [page.id]: newFp } })
+  }
+
+  // Get all unique charges across months (by label)
+  const allCharges: FinancialCharge[] = fpData.months.length > 0 ? fpData.months[0].charges : []
+  const paymentMix = fpData.paymentMix || []
+
+  const updateChargeFormula = (chargeId: string, formulaType: string, params: Record<string, number>) => {
+    const newMonths = fpData.months.map(m => ({
+      ...m,
+      charges: m.charges.map(c => {
+        if (c.id.replace(/^[a-z]+-/, '') !== chargeId.replace(/^[a-z]+-/, '')) {
+          // Match by suffix (e.g. "-6" for achat marchandise across all months)
+          const cSuffix = c.id.split('-').slice(1).join('-')
+          const targetSuffix = chargeId.split('-').slice(1).join('-')
+          if (cSuffix !== targetSuffix) return c
+        }
+        if (formulaType === 'manual') {
+          const { formula: _, ...rest } = c
+          return rest
+        }
+        if (formulaType === 'percentage_of_ca') {
+          return { ...c, formula: { type: 'percentage_of_ca' as const, rate: params.rate ?? 0 }, dependsOn: 'ca' as const }
+        }
+        if (formulaType === 'per_order') {
+          return { ...c, formula: { type: 'per_order' as const, unitCost: params.unitCost ?? 0 }, dependsOn: 'commandes' as const }
+        }
+        if (formulaType === 'blended_transaction_fees') {
+          return { ...c, formula: { type: 'blended_transaction_fees' as const }, dependsOn: 'ca' as const }
+        }
+        return c
+      })
+    }))
+    updateFpData({ months: newMonths })
+  }
+
+  // Payment mix editor
+  const updatePaymentMix = (idx: number, field: keyof PaymentMethodConfig, value: string | number) => {
+    const newMix = [...paymentMix]
+    newMix[idx] = { ...newMix[idx], [field]: typeof value === 'string' && field !== 'name' ? Number(value) : value }
+    updateFpData({ paymentMix: newMix })
+  }
+  const addPaymentMethod = () => {
+    updateFpData({ paymentMix: [...paymentMix, { name: '', sharePercent: 0, feePercent: 0, fixedFeePerTx: 0 }] })
+  }
+  const removePaymentMethod = (idx: number) => {
+    updateFpData({ paymentMix: paymentMix.filter((_, i) => i !== idx) })
+  }
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-foreground">{page.label}</h3>
+
+      {/* Charges with formulas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Charges & formules</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {allCharges.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Aucune charge. Ajoutez des données via la page client.</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="grid grid-cols-12 gap-2 px-2 text-xs font-semibold text-muted-foreground uppercase">
+                <span className="col-span-3">Charge</span>
+                <span className="col-span-1">Type</span>
+                <span className="col-span-3">Formule</span>
+                <span className="col-span-3">Paramètre</span>
+                <span className="col-span-2">Aperçu</span>
+              </div>
+              {allCharges.map(charge => {
+                const formulaType = charge.formula?.type || 'manual'
+                const rate = charge.formula?.type === 'percentage_of_ca' ? charge.formula.rate : 0
+                const unitCost = charge.formula?.type === 'per_order' ? charge.formula.unitCost : 0
+
+                // Preview calculation with first month
+                const m0 = fpData.months[0]
+                let preview = charge.amount
+                if (charge.formula?.type === 'percentage_of_ca' && m0) preview = m0.revenue * (charge.formula.rate)
+                if (charge.formula?.type === 'per_order' && m0) preview = (m0.orders || 0) * charge.formula.unitCost
+                if (charge.formula?.type === 'blended_transaction_fees' && m0) {
+                  preview = 0
+                  for (const pm of paymentMix) {
+                    preview += m0.revenue * (pm.sharePercent / 100) * (pm.feePercent / 100) + (m0.orders || 0) * (pm.sharePercent / 100) * pm.fixedFeePerTx
+                  }
+                }
+
+                return (
+                  <div key={charge.id} className="grid grid-cols-12 gap-2 items-center py-2 border-b border-border/50 last:border-0">
+                    <span className="col-span-3 text-sm font-medium truncate">{charge.label}</span>
+                    <span className="col-span-1">
+                      <Badge variant={charge.category === 'fixe' ? 'outline' : 'secondary'} className="text-[10px]">
+                        {charge.category === 'fixe' ? 'Fixe' : 'Var.'}
+                      </Badge>
+                    </span>
+                    <div className="col-span-3">
+                      <select
+                        value={formulaType}
+                        onChange={e => updateChargeFormula(charge.id, e.target.value, { rate, unitCost })}
+                        className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                      >
+                        <option value="manual">Manuel</option>
+                        <option value="percentage_of_ca">% du CA</option>
+                        <option value="per_order">Coût/commande</option>
+                        <option value="blended_transaction_fees">Frais tx pondérés</option>
+                      </select>
+                    </div>
+                    <div className="col-span-3">
+                      {formulaType === 'percentage_of_ca' && (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={rate}
+                            onChange={e => updateChargeFormula(charge.id, 'percentage_of_ca', { rate: Number(e.target.value) })}
+                            className="w-20 h-8 rounded-md border border-input bg-background px-2 text-xs text-right"
+                          />
+                          <span className="text-xs text-muted-foreground">× CA</span>
+                        </div>
+                      )}
+                      {formulaType === 'per_order' && (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={unitCost}
+                            onChange={e => updateChargeFormula(charge.id, 'per_order', { unitCost: Number(e.target.value) })}
+                            className="w-20 h-8 rounded-md border border-input bg-background px-2 text-xs text-right"
+                          />
+                          <span className="text-xs text-muted-foreground">€/cmd</span>
+                        </div>
+                      )}
+                      {formulaType === 'blended_transaction_fees' && (
+                        <span className="text-[10px] text-blue-600">Voir mix ci-dessous</span>
+                      )}
+                      {formulaType === 'manual' && (
+                        <span className="text-xs text-muted-foreground">Saisie libre</span>
+                      )}
+                    </div>
+                    <div className="col-span-2 text-right">
+                      <span className={`text-sm font-medium ${formulaType !== 'manual' ? 'text-blue-600' : 'text-foreground'}`}>
+                        {Math.round(preview).toLocaleString('fr-FR')}€
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Payment Mix editor */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Mix de paiement</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">Répartition des moyens de paiement pour le calcul des frais de transaction pondérés.</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={addPaymentMethod}><Plus className="h-4 w-4" />Ajouter</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {paymentMix.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Aucun moyen de paiement configuré.</p>
+          ) : (
+            <div className="space-y-2">
+              <div className="grid grid-cols-12 gap-2 px-1 text-xs font-semibold text-muted-foreground uppercase">
+                <span className="col-span-4">Moyen de paiement</span>
+                <span className="col-span-2">Part du CA (%)</span>
+                <span className="col-span-2">Commission (%)</span>
+                <span className="col-span-2">Fixe/tx (€)</span>
+                <span className="col-span-2"></span>
+              </div>
+              {paymentMix.map((pm, idx) => (
+                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                  <input value={pm.name} onChange={e => updatePaymentMix(idx, 'name', e.target.value)} className="col-span-4 h-9 rounded-md border border-input bg-background px-2 text-sm" placeholder="Shopify Payments" />
+                  <input type="number" step="0.1" value={pm.sharePercent} onChange={e => updatePaymentMix(idx, 'sharePercent', e.target.value)} className="col-span-2 h-9 rounded-md border border-input bg-background px-2 text-sm text-right" />
+                  <input type="number" step="0.01" value={pm.feePercent} onChange={e => updatePaymentMix(idx, 'feePercent', e.target.value)} className="col-span-2 h-9 rounded-md border border-input bg-background px-2 text-sm text-right" />
+                  <input type="number" step="0.01" value={pm.fixedFeePerTx} onChange={e => updatePaymentMix(idx, 'fixedFeePerTx', e.target.value)} className="col-span-2 h-9 rounded-md border border-input bg-background px-2 text-sm text-right" />
+                  <div className="col-span-2 flex justify-end">
+                    <Button variant="ghost" size="sm" onClick={() => removePaymentMethod(idx)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                  </div>
+                </div>
+              ))}
+              {paymentMix.length > 0 && (
+                <div className="flex justify-end pt-2 border-t border-border">
+                  <span className={`text-xs ${Math.abs(paymentMix.reduce((s, p) => s + p.sharePercent, 0) - 100) < 0.5 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    Total parts : {paymentMix.reduce((s, p) => s + p.sharePercent, 0).toFixed(1)}%
+                    {Math.abs(paymentMix.reduce((s, p) => s + p.sharePercent, 0) - 100) >= 0.5 && ' ⚠️ doit faire 100%'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Markup multiplier */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Coefficient de marge (markup)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Prix de vente HTVA =</span>
+            <input
+              type="number"
+              step="0.1"
+              value={fpData.markupMultiplier || 2.5}
+              onChange={e => updateFpData({ markupMultiplier: Number(e.target.value) })}
+              className="w-20 h-9 rounded-md border border-input bg-background px-2 text-sm text-right"
+            />
+            <span className="text-sm text-muted-foreground">× prix d'achat</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Avec un coefficient de {fpData.markupMultiplier || 2.5}, le coût d'achat = CA / {fpData.markupMultiplier || 2.5} = {((1 / (fpData.markupMultiplier || 2.5)) * 100).toFixed(1)}% du CA.</p>
         </CardContent>
       </Card>
     </div>
