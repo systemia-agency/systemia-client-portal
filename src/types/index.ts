@@ -112,6 +112,7 @@ export interface CustomPage {
   label: string
   icon: 'calculator' | 'euro' | 'trending-up' | 'pie-chart' | 'bar-chart' | 'clipboard' | 'users'
   type: CustomPageType
+  clientEditable?: boolean // if true, client can modify data
 }
 
 // Leads CRM data
@@ -137,22 +138,39 @@ export interface LeadsCrmData {
 }
 
 // Financial Piloting data
+export type ChargeDependsOn = 'ca' | 'commandes' | 'fixe'
+
 export interface FinancialCharge {
   id: string
   label: string
   amount: number
   category: 'fixe' | 'variable'
+  dependsOn?: ChargeDependsOn // for variable: depends on revenue or orders
 }
 
 export interface FinancialMonth {
   month: string
   revenue: number
+  orders?: number // number of orders (e-commerce)
   charges: FinancialCharge[]
 }
 
 export interface FinancialPilotingData {
   months: FinancialMonth[]
 }
+
+// Standard menu IDs
+export type StandardMenuId = 'accueil' | 'resultats' | 'projets' | 'demandes' | 'services' | 'facturation' | 'ressources' | 'assistant'
+export const ALL_STANDARD_MENUS: { id: StandardMenuId; label: string }[] = [
+  { id: 'accueil', label: 'Accueil' },
+  { id: 'resultats', label: 'Résultats marketing' },
+  { id: 'projets', label: 'Projets en cours' },
+  { id: 'demandes', label: 'Demandes & support' },
+  { id: 'services', label: 'Services & optimisations' },
+  { id: 'facturation', label: 'Facturation' },
+  { id: 'ressources', label: 'Ressources' },
+  { id: 'assistant', label: 'Assistant IA' },
+]
 
 export interface ClientData {
   slug: string
@@ -167,4 +185,5 @@ export interface ClientData {
   subscription: Subscription
   customPages?: CustomPage[]
   customPageData?: Record<string, unknown>
+  visibleMenus?: StandardMenuId[] // if undefined, all standard menus are shown
 }

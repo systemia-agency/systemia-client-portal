@@ -6,7 +6,7 @@ import {
 } from '@/data/mock'
 
 const INIT_KEY = 'systemia_initialized'
-const SEED_VERSION = '4'
+const SEED_VERSION = '5'
 const USERS_KEY = 'systemia_users'
 const REQUESTS_KEY = 'systemia_requests'
 const RESOURCES_KEY = 'systemia_resources'
@@ -42,8 +42,8 @@ export function seedData(): void {
   // Create Boutique MDA client
   const mdaUser: StoredUser = {
     id: 'client-boutique-mda',
-    email: 'contact@boutique-mda.be',
-    passwordHash: btoa('mda2026'),
+    email: 'admin@boutiquemda.com',
+    passwordHash: btoa('Caprisun1'),
     role: 'client',
     slug: 'boutique-mda',
     companyName: 'Boutique MDA',
@@ -100,49 +100,67 @@ export function seedData(): void {
   }))
   setItem<ClientRequest[]>(REQUESTS_KEY, seededRequests)
 
-  // Seed Boutique MDA with financial piloting custom page
+  // Seed Boutique MDA with financial piloting custom page (Shopify e-commerce)
   const mdaFinancialData: FinancialPilotingData = {
     months: [
       {
         month: 'Janvier 2026',
         revenue: 30000,
+        orders: 245,
         charges: [
-          { id: 'ch-1', label: 'Loyer', amount: 2000, category: 'fixe' },
-          { id: 'ch-2', label: 'Charges salariales', amount: 4000, category: 'fixe' },
-          { id: 'ch-3', label: 'Assurances', amount: 450, category: 'fixe' },
-          { id: 'ch-4', label: 'Comptable', amount: 350, category: 'fixe' },
-          { id: 'ch-5', label: 'Meta Ads', amount: 5000, category: 'variable' },
-          { id: 'ch-6', label: 'Fournisseurs marchandise', amount: 8000, category: 'variable' },
-          { id: 'ch-7', label: 'Frais d\'expédition', amount: 1200, category: 'variable' },
-          { id: 'ch-8', label: 'Emballages', amount: 400, category: 'variable' },
+          { id: 'ch-1', label: 'Loyer entrepôt', amount: 2000, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-2', label: 'Charges salariales', amount: 4000, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-3', label: 'Assurances', amount: 450, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-4', label: 'Comptable', amount: 350, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-4b', label: 'Abonnement Shopify', amount: 79, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-4c', label: 'Apps & outils SaaS', amount: 180, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-5', label: 'Meta Ads', amount: 5000, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-5b', label: 'Google Ads', amount: 1500, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-6', label: 'Achat marchandise', amount: 8000, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-7', label: 'Frais d\'expédition', amount: 1200, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-8', label: 'Emballages', amount: 400, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-8b', label: 'Préparateur de commande', amount: 1800, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-8c', label: 'Frais Stripe/paiement', amount: 540, category: 'variable', dependsOn: 'ca' },
         ],
       },
       {
         month: 'Février 2026',
         revenue: 27500,
+        orders: 210,
         charges: [
-          { id: 'ch-9', label: 'Loyer', amount: 2000, category: 'fixe' },
-          { id: 'ch-10', label: 'Charges salariales', amount: 4000, category: 'fixe' },
-          { id: 'ch-11', label: 'Assurances', amount: 450, category: 'fixe' },
-          { id: 'ch-12', label: 'Comptable', amount: 350, category: 'fixe' },
-          { id: 'ch-13', label: 'Meta Ads', amount: 4500, category: 'variable' },
-          { id: 'ch-14', label: 'Fournisseurs marchandise', amount: 7000, category: 'variable' },
-          { id: 'ch-15', label: 'Frais d\'expédition', amount: 1000, category: 'variable' },
-          { id: 'ch-16', label: 'Emballages', amount: 350, category: 'variable' },
+          { id: 'ch-9', label: 'Loyer entrepôt', amount: 2000, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-10', label: 'Charges salariales', amount: 4000, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-11', label: 'Assurances', amount: 450, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-12', label: 'Comptable', amount: 350, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-12b', label: 'Abonnement Shopify', amount: 79, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-12c', label: 'Apps & outils SaaS', amount: 180, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-13', label: 'Meta Ads', amount: 4500, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-13b', label: 'Google Ads', amount: 1200, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-14', label: 'Achat marchandise', amount: 7000, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-15', label: 'Frais d\'expédition', amount: 1000, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-16', label: 'Emballages', amount: 350, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-16b', label: 'Préparateur de commande', amount: 1550, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-16c', label: 'Frais Stripe/paiement', amount: 495, category: 'variable', dependsOn: 'ca' },
         ],
       },
       {
         month: 'Mars 2026',
         revenue: 33000,
+        orders: 280,
         charges: [
-          { id: 'ch-17', label: 'Loyer', amount: 2000, category: 'fixe' },
-          { id: 'ch-18', label: 'Charges salariales', amount: 4000, category: 'fixe' },
-          { id: 'ch-19', label: 'Assurances', amount: 450, category: 'fixe' },
-          { id: 'ch-20', label: 'Comptable', amount: 350, category: 'fixe' },
-          { id: 'ch-21', label: 'Meta Ads', amount: 5500, category: 'variable' },
-          { id: 'ch-22', label: 'Fournisseurs marchandise', amount: 9000, category: 'variable' },
-          { id: 'ch-23', label: 'Frais d\'expédition', amount: 1400, category: 'variable' },
-          { id: 'ch-24', label: 'Emballages', amount: 500, category: 'variable' },
+          { id: 'ch-17', label: 'Loyer entrepôt', amount: 2000, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-18', label: 'Charges salariales', amount: 4000, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-19', label: 'Assurances', amount: 450, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-20', label: 'Comptable', amount: 350, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-20b', label: 'Abonnement Shopify', amount: 79, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-20c', label: 'Apps & outils SaaS', amount: 195, category: 'fixe', dependsOn: 'fixe' },
+          { id: 'ch-21', label: 'Meta Ads', amount: 5500, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-21b', label: 'Google Ads', amount: 1800, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-22', label: 'Achat marchandise', amount: 9000, category: 'variable', dependsOn: 'ca' },
+          { id: 'ch-23', label: 'Frais d\'expédition', amount: 1400, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-24', label: 'Emballages', amount: 500, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-24b', label: 'Préparateur de commande', amount: 2100, category: 'variable', dependsOn: 'commandes' },
+          { id: 'ch-24c', label: 'Frais Stripe/paiement', amount: 594, category: 'variable', dependsOn: 'ca' },
         ],
       },
     ],
@@ -159,13 +177,12 @@ export function seedData(): void {
     optimizations: [],
     invoices: [],
     subscription: { plan: 'Performance E-commerce', monthly: 1500, nextBilling: '2026-04-01', startDate: '2026-01-01' },
+    visibleMenus: [], // NO standard menus — only custom
     customPages: [
-      { id: 'financial-mda', slug: 'maitrise-couts', label: 'Maîtrise des coûts', icon: 'calculator', type: 'financial-piloting' },
-      { id: 'leads-mda', slug: 'leads', label: 'Vos leads', icon: 'users', type: 'leads-crm' },
+      { id: 'financial-mda', slug: 'maitrise-couts', label: 'Maîtrise des coûts', icon: 'calculator', type: 'financial-piloting', clientEditable: true },
     ],
     customPageData: {
       'financial-mda': mdaFinancialData,
-      'leads-mda': { leads: [] },
     },
   }
   setItem('systemia_client_boutique-mda', mdaClientData)

@@ -5,7 +5,7 @@ import {
   Calculator, Euro, TrendingUp, PieChart, Clipboard, Users,
   type LucideIcon,
 } from 'lucide-react'
-import type { CustomPage } from '@/types'
+import type { CustomPage, StandardMenuId } from '@/types'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { useClientData } from '@/hooks/useClientData'
@@ -22,16 +22,18 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   }
 
   const base = `/client/${slug}`
-  const navItems = [
-    { to: base, label: 'Accueil', icon: LayoutDashboard, end: true },
-    { to: `${base}/resultats`, label: 'Résultats marketing', icon: BarChart3 },
-    { to: `${base}/projets`, label: 'Projets en cours', icon: FolderKanban },
-    { to: `${base}/demandes`, label: 'Demandes & support', icon: MessageSquare },
-    { to: `${base}/services`, label: 'Services & optimisations', icon: Sparkles },
-    { to: `${base}/facturation`, label: 'Facturation', icon: Receipt },
-    { to: `${base}/ressources`, label: 'Ressources', icon: BookOpen },
-    { to: `${base}/assistant`, label: 'Assistant IA', icon: Bot },
+  const visibleMenus = clientData?.visibleMenus // undefined = show all
+  const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; end?: boolean; menuId: StandardMenuId }[] = [
+    { to: base, label: 'Accueil', icon: LayoutDashboard, end: true, menuId: 'accueil' },
+    { to: `${base}/resultats`, label: 'Résultats marketing', icon: BarChart3, menuId: 'resultats' },
+    { to: `${base}/projets`, label: 'Projets en cours', icon: FolderKanban, menuId: 'projets' },
+    { to: `${base}/demandes`, label: 'Demandes & support', icon: MessageSquare, menuId: 'demandes' },
+    { to: `${base}/services`, label: 'Services & optimisations', icon: Sparkles, menuId: 'services' },
+    { to: `${base}/facturation`, label: 'Facturation', icon: Receipt, menuId: 'facturation' },
+    { to: `${base}/ressources`, label: 'Ressources', icon: BookOpen, menuId: 'ressources' },
+    { to: `${base}/assistant`, label: 'Assistant IA', icon: Bot, menuId: 'assistant' },
   ]
+  const navItems = visibleMenus ? allNavItems.filter(item => visibleMenus.includes(item.menuId)) : allNavItems
 
   const customPages: CustomPage[] = clientData?.customPages || []
   const customNavItems = customPages.map(p => ({

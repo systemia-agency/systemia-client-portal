@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { getClientBySlug, getClientData, updateClientData } from '@/store/clientStore'
-import type { ClientData, Project, Invoice, ActiveService, Optimization, TrafficDataEntry, CustomPage, CustomPageType } from '@/types'
+import type { ClientData, Project, Invoice, ActiveService, Optimization, TrafficDataEntry, CustomPage, CustomPageType, StandardMenuId } from '@/types'
+import { ALL_STANDARD_MENUS } from '@/types'
 import { ArrowLeft, Save, Plus, Trash2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -408,6 +409,24 @@ const iconOptions: CustomPage['icon'][] = ['calculator', 'euro', 'trending-up', 
 
 function MenusTab({ data, setData }: { data: ClientData; setData: (d: ClientData) => void }) {
   const pages = data.customPages || []
+  const visibleMenus = data.visibleMenus // undefined = all shown
+
+  // Toggle standard menu visibility
+  const toggleStandardMenu = (menuId: StandardMenuId) => {
+    const current = visibleMenus || ALL_STANDARD_MENUS.map(m => m.id)
+    const updated = current.includes(menuId)
+      ? current.filter(id => id !== menuId)
+      : [...current, menuId]
+    setData({ ...data, visibleMenus: updated })
+  }
+
+  const showAllStandard = () => {
+    setData({ ...data, visibleMenus: undefined })
+  }
+
+  const hideAllStandard = () => {
+    setData({ ...data, visibleMenus: [] })
+  }
 
   const addPage = () => {
     const newPage: CustomPage = {
@@ -416,6 +435,7 @@ function MenusTab({ data, setData }: { data: ClientData; setData: (d: ClientData
       label: '',
       icon: 'calculator',
       type: 'financial-piloting',
+      clientEditable: false,
     }
     setData({ ...data, customPages: [...pages, newPage] })
   }
@@ -429,79 +449,135 @@ function MenusTab({ data, setData }: { data: ClientData; setData: (d: ClientData
     setData({ ...data, customPages: newPages, customPageData: newPageData })
   }
 
-  const updatePage = (idx: number, field: keyof CustomPage, value: string) => {
+  const updatePage = (idx: number, field: keyof CustomPage, value: string | boolean) => {
     const newPages = [...pages]
-    newPages[idx] = { ...newPages[idx], [field]: value }
-    // Auto-generate slug from label
-    if (field === 'label') {
+    newPages[idx] = { ...newPages[idx], [field]: value } as CustomPage
+    if (field === 'label' && typeof value === 'string') {
       newPages[idx].slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `page-${Date.now()}`
     }
     setData({ ...data, customPages: newPages })
   }
 
+  const activeStandard = visibleMenus || ALL_STANDARD_MENUS.map(m => m.id)
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Menus sur-mesure</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">Ajoutez des pages personnalisées à la navigation du client.</p>
+    <div className="space-y-6">
+      {/* Standard menus visibility */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Menus standard</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Choisissez quels menus afficher pour ce client.</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={showAllStandard}>Tout afficher</Button>
+              <Button variant="outline" size="sm" onClick={hideAllStandard}>Tout masquer</Button>
+            </div>
           </div>
-          <Button variant="outline" onClick={addPage}><Plus className="h-4 w-4" />Ajouter un menu</Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {pages.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">Aucun menu sur-mesure. Ce client n'a que les pages standard.</p>
-        ) : (
-          <div className="space-y-4">
-            {pages.map((page, idx) => (
-              <div key={page.id} className="p-4 rounded-lg border border-border bg-background space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline">Menu #{idx + 1}</Badge>
-                  <Button variant="ghost" size="sm" onClick={() => removePage(idx)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-foreground block mb-1.5">Nom du menu</label>
-                    <input
-                      value={page.label}
-                      onChange={e => updatePage(idx, 'label', e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      placeholder="Maîtrise des coûts"
-                    />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {ALL_STANDARD_MENUS.map(menu => {
+              const active = activeStandard.includes(menu.id)
+              return (
+                <button
+                  key={menu.id}
+                  onClick={() => toggleStandardMenu(menu.id)}
+                  className={`flex items-center gap-3 p-3 rounded-lg border text-sm font-medium transition-all text-left ${
+                    active
+                      ? 'border-[var(--sys-blue)] bg-blue-50 text-foreground'
+                      : 'border-border bg-background text-muted-foreground opacity-60'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center shrink-0 ${
+                    active ? 'border-[var(--sys-blue)] bg-[var(--sys-blue)]' : 'border-border'
+                  }`}>
+                    {active && <Check className="h-3 w-3 text-white" />}
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground block mb-1.5">Type de page</label>
-                    <select
-                      value={page.type}
-                      onChange={e => updatePage(idx, 'type', e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      {Object.entries(pageTypeLabels).map(([val, label]) => (
-                        <option key={val} value={val}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground block mb-1.5">Icône</label>
-                    <select
-                      value={page.icon}
-                      onChange={e => updatePage(idx, 'icon', e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      {iconOptions.map(icon => (
-                        <option key={icon} value={icon}>{icon}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">URL : /client/{data.slug}/custom/{page.slug}</p>
-              </div>
-            ))}
+                  {menu.label}
+                </button>
+              )
+            })}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Custom menus */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Menus sur-mesure</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Pages personnalisées pour ce client.</p>
+            </div>
+            <Button variant="outline" onClick={addPage}><Plus className="h-4 w-4" />Ajouter un menu</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {pages.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Aucun menu sur-mesure.</p>
+          ) : (
+            <div className="space-y-4">
+              {pages.map((page, idx) => (
+                <div key={page.id} className="p-4 rounded-lg border border-border bg-background space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline">Menu #{idx + 1}</Badge>
+                    <Button variant="ghost" size="sm" onClick={() => removePage(idx)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-foreground block mb-1.5">Nom du menu</label>
+                      <input
+                        value={page.label}
+                        onChange={e => updatePage(idx, 'label', e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        placeholder="Maîtrise des coûts"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground block mb-1.5">Type de page</label>
+                      <select
+                        value={page.type}
+                        onChange={e => updatePage(idx, 'type', e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {Object.entries(pageTypeLabels).map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground block mb-1.5">Icône</label>
+                      <select
+                        value={page.icon}
+                        onChange={e => updatePage(idx, 'icon', e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {iconOptions.map(icon => (
+                          <option key={icon} value={icon}>{icon}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={page.clientEditable || false}
+                        onChange={e => updatePage(idx, 'clientEditable', e.target.checked)}
+                        className="w-4 h-4 rounded border-input accent-[var(--sys-blue)]"
+                      />
+                      <span className="text-sm text-foreground">Le client peut modifier les données</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">URL : /client/{data.slug}/custom/{page.slug}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }

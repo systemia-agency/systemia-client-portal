@@ -19,6 +19,25 @@ import { AdminClientEditor } from '@/pages/admin/AdminClientEditor'
 import { AdminDemandes } from '@/pages/admin/AdminDemandes'
 import { AdminRessources } from '@/pages/admin/AdminRessources'
 import { CustomPageRouter } from '@/pages/custom/CustomPageRouter'
+import { useClientData } from '@/hooks/useClientData'
+
+function ClientIndex() {
+  const { clientData } = useClientData()
+  const visibleMenus = clientData?.visibleMenus
+  // If accueil is hidden, redirect to first available page
+  if (visibleMenus && !visibleMenus.includes('accueil')) {
+    const customPages = clientData?.customPages || []
+    if (customPages.length > 0) {
+      return <Navigate to={`custom/${customPages[0].slug}`} replace />
+    }
+    // fallback to first visible standard menu
+    const routeMap: Record<string, string> = { resultats: 'resultats', projets: 'projets', demandes: 'demandes', services: 'services', facturation: 'facturation', ressources: 'ressources', assistant: 'assistant' }
+    for (const m of visibleMenus) {
+      if (routeMap[m]) return <Navigate to={routeMap[m]} replace />
+    }
+  }
+  return <Accueil />
+}
 
 function RootRedirect() {
   const { isAuthenticated, user } = useAuth()
@@ -45,7 +64,7 @@ function App() {
           {/* Client routes */}
           <Route element={<ProtectedRoute requiredRole="client" />}>
             <Route path="/client/:slug" element={<ClientLayout />}>
-              <Route index element={<Accueil />} />
+              <Route index element={<ClientIndex />} />
               <Route path="resultats" element={<Resultats />} />
               <Route path="projets" element={<Projets />} />
               <Route path="demandes" element={<Demandes />} />
