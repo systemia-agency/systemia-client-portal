@@ -17,6 +17,42 @@ const dependsOnLabels: Record<ChargeDependsOn, string> = {
   commandes: 'Varie selon les commandes',
 }
 
+function computeFormulaAmount(charge: FinancialCharge, month: FinancialMonth, fpData: FinancialPilotingData): number {
+  if (!charge.formula) return charge.amount
+  switch (charge.formula.type) {
+    case 'percentage_of_ca':
+      return Math.round(month.revenue * charge.formula.rate * 100) / 100
+    case 'blended_transaction_fees': {
+      const mix = fpData.paymentMix || []
+      if (mix.length === 0) return charge.amount
+      const orders = month.orders || 0
+      let total = 0
+      for (const pm of mix) {
+        const caShare = month.revenue * (pm.sharePercent / 100)
+        const ordersShare = orders * (pm.sharePercent / 100)
+        total += caShare * (pm.feePercent / 100) + ordersShare * pm.fixedFeePerTx
+      }
+      return Math.round(total * 100) / 100
+    }
+    default:
+      return charge.amount
+  }
+}
+
+function getFormulaLabel(charge: FinancialCharge, fpData: FinancialPilotingData): string | null {
+  if (!charge.formula) return null
+  switch (charge.formula.type) {
+    case 'percentage_of_ca':
+      return `Auto : ${(charge.formula.rate * 100).toFixed(1)}% du CA`
+    case 'blended_transaction_fees': {
+      const mix = fpData.paymentMix || []
+      return `Auto : frais pondérés (${mix.map(m => m.name).join(', ')})`
+    }
+    default:
+      return null
+  }
+}
+
 export function FinancialPiloting({ pageId }: Props) {
   const { clientData, updateCustomPageData } = useClientData()
   const { isAdmin } = useAuth()
@@ -89,17 +125,18 @@ export function FinancialPiloting({ pageId }: Props) {
 
   const totals = useMemo(() => {
     if (!current) return { fixe: 0, variable: 0, total: 0, margin: 0, marginPct: 0 }
-    const fixe = current.charges.filter(c => c.category === 'fixe').reduce((s, c) => s + c.amount, 0)
-    const variable = current.charges.filter(c => c.category === 'variable').reduce((s, c) => s + c.amount, 0)
+    const getAmt = (c: FinancialCharge) => c.formula ? computeFormulaAmount(c, current, data) : c.amount
+    const fixe = current.charges.filter(c => c.category === 'fixe').reduce((s, c) => s + getAmt(c), 0)
+    const variable = current.charges.filter(c => c.category === 'variable').reduce((s, c) => s + getAmt(c), 0)
     const total = fixe + variable
     const margin = current.revenue - total
     const marginPct = current.revenue > 0 ? (margin / current.revenue) * 100 : 0
     return { fixe, variable, total, margin, marginPct }
-  }, [current])
+  }, [current, data])
 
   const chartData = useMemo(() => {
     return data.months.map(m => {
-      const totalCharges = m.charges.reduce((s, c) => s + c.amount, 0)
+      const totalCharges = m.charges.reduce((s, c) => s + (c.formula ? computeFormulaAmount(c, m, data) : c.amount), 0)
       return {
         month: m.month,
         'Chiffre d\'affaires': m.revenue,
@@ -107,7 +144,7 @@ export function FinancialPiloting({ pageId }: Props) {
         'Marge': m.revenue - totalCharges,
       }
     })
-  }, [data.months])
+  }, [data.months, data])
 
   const fmt = (n: number) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
 
@@ -314,32 +351,42 @@ export function FinancialPiloting({ pageId }: Props) {
                       <p className="text-sm text-muted-foreground text-center py-4">Aucune charge fixe.</p>
                     ) : (
                       <div className="space-y-2">
-                        {current.charges.map((charge, idx) => charge.category === 'fixe' && (
-                          <div key={charge.id} className="flex items-center gap-2">
-                            <input
-                              value={charge.label}
-                              onChange={e => updateCharge(selectedMonth, idx, 'label', e.target.value)}
-                              disabled={!canEdit}
-                              className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
-                              placeholder="Libellé"
-                            />
-                            <div className="relative">
-                              <input
-                                type="number"
-                                value={charge.amount}
-                                onChange={e => updateCharge(selectedMonth, idx, 'amount', Number(e.target.value))}
-                                disabled={!canEdit}
-                                className="w-28 h-9 rounded-md border border-input bg-background px-3 pr-7 text-sm text-right disabled:opacity-60"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                        {current.charges.map((charge, idx) => {
+                          if (charge.category !== 'fixe') return null
+                          const isAuto = !!charge.formula
+                          const displayAmt = isAuto ? computeFormulaAmount(charge, current, data) : charge.amount
+                          return (
+                            <div key={charge.id}>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  value={charge.label}
+                                  onChange={e => updateCharge(selectedMonth, idx, 'label', e.target.value)}
+                                  disabled={!canEdit}
+                                  className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
+                                  placeholder="Libellé"
+                                />
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={isAuto ? displayAmt : charge.amount}
+                                    onChange={e => updateCharge(selectedMonth, idx, 'amount', Number(e.target.value))}
+                                    disabled={!canEdit || isAuto}
+                                    className={`w-28 h-9 rounded-md border border-input bg-background px-3 pr-7 text-sm text-right disabled:opacity-60 ${isAuto ? 'bg-blue-50 font-medium' : ''}`}
+                                  />
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                                </div>
+                                {canEdit && !isAuto && (
+                                  <Button variant="ghost" size="sm" onClick={() => removeCharge(selectedMonth, idx)}>
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                )}
+                              </div>
+                              {isAuto && (
+                                <p className="text-[10px] text-blue-600 pl-1 mt-0.5">{getFormulaLabel(charge, data)}</p>
+                              )}
                             </div>
-                            {canEdit && (
-                              <Button variant="ghost" size="sm" onClick={() => removeCharge(selectedMonth, idx)}>
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
+                          )
+                        })}
                         <div className="flex justify-end pt-2 border-t border-border">
                           <span className="text-sm font-semibold">{fmt(totals.fixe)}</span>
                         </div>
@@ -365,46 +412,54 @@ export function FinancialPiloting({ pageId }: Props) {
                       <p className="text-sm text-muted-foreground text-center py-4">Aucune charge variable.</p>
                     ) : (
                       <div className="space-y-2">
-                        {current.charges.map((charge, idx) => charge.category === 'variable' && (
-                          <div key={charge.id} className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <input
-                                value={charge.label}
-                                onChange={e => updateCharge(selectedMonth, idx, 'label', e.target.value)}
-                                disabled={!canEdit}
-                                className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
-                                placeholder="Libellé"
-                              />
-                              <div className="relative">
+                        {current.charges.map((charge, idx) => {
+                          if (charge.category !== 'variable') return null
+                          const isAuto = !!charge.formula
+                          const displayAmt = isAuto ? computeFormulaAmount(charge, current, data) : charge.amount
+                          const formulaLabel = getFormulaLabel(charge, data)
+                          return (
+                            <div key={charge.id} className="space-y-1">
+                              <div className="flex items-center gap-2">
                                 <input
-                                  type="number"
-                                  value={charge.amount}
-                                  onChange={e => updateCharge(selectedMonth, idx, 'amount', Number(e.target.value))}
+                                  value={charge.label}
+                                  onChange={e => updateCharge(selectedMonth, idx, 'label', e.target.value)}
                                   disabled={!canEdit}
-                                  className="w-28 h-9 rounded-md border border-input bg-background px-3 pr-7 text-sm text-right disabled:opacity-60"
+                                  className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
+                                  placeholder="Libellé"
                                 />
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={isAuto ? displayAmt : charge.amount}
+                                    onChange={e => updateCharge(selectedMonth, idx, 'amount', Number(e.target.value))}
+                                    disabled={!canEdit || isAuto}
+                                    className={`w-28 h-9 rounded-md border border-input bg-background px-3 pr-7 text-sm text-right disabled:opacity-60 ${isAuto ? 'bg-blue-50 font-medium' : ''}`}
+                                  />
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                                </div>
+                                {!isAuto && (
+                                  <select
+                                    value={charge.dependsOn || 'ca'}
+                                    onChange={e => updateCharge(selectedMonth, idx, 'dependsOn', e.target.value)}
+                                    disabled={!canEdit}
+                                    className="h-9 rounded-md border border-input bg-background px-2 text-xs disabled:opacity-60 w-auto"
+                                  >
+                                    <option value="ca">Selon CA</option>
+                                    <option value="commandes">Selon commandes</option>
+                                  </select>
+                                )}
+                                {canEdit && !isAuto && (
+                                  <Button variant="ghost" size="sm" onClick={() => removeCharge(selectedMonth, idx)}>
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                )}
                               </div>
-                              <select
-                                value={charge.dependsOn || 'ca'}
-                                onChange={e => updateCharge(selectedMonth, idx, 'dependsOn', e.target.value)}
-                                disabled={!canEdit}
-                                className="h-9 rounded-md border border-input bg-background px-2 text-xs disabled:opacity-60 w-auto"
-                              >
-                                <option value="ca">Selon CA</option>
-                                <option value="commandes">Selon commandes</option>
-                              </select>
-                              {canEdit && (
-                                <Button variant="ghost" size="sm" onClick={() => removeCharge(selectedMonth, idx)}>
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              )}
+                              <p className={`text-[10px] pl-1 ${isAuto ? 'text-blue-600' : 'text-muted-foreground'}`}>
+                                {isAuto ? formulaLabel : dependsOnLabels[charge.dependsOn || 'ca']}
+                              </p>
                             </div>
-                            <p className="text-[10px] text-muted-foreground pl-1">
-                              {dependsOnLabels[charge.dependsOn || 'ca']}
-                            </p>
-                          </div>
-                        ))}
+                          )
+                        })}
                         <div className="flex justify-end pt-2 border-t border-border">
                           <span className="text-sm font-semibold">{fmt(totals.variable)}</span>
                         </div>

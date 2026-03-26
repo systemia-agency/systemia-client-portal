@@ -140,23 +140,38 @@ export interface LeadsCrmData {
 // Financial Piloting data
 export type ChargeDependsOn = 'ca' | 'commandes' | 'fixe'
 
+export type ChargeFormula =
+  | { type: 'percentage_of_ca'; rate: number } // e.g. 0.40 = 40% of CA HTVA
+  | { type: 'blended_transaction_fees' } // uses paymentMix config
+  | null
+
+export interface PaymentMethodConfig {
+  name: string
+  sharePercent: number // % of CA going through this method (e.g. 46.3)
+  feePercent: number // transaction fee % (e.g. 1.4)
+  fixedFeePerTx: number // fixed fee per transaction in € (e.g. 0.25)
+}
+
 export interface FinancialCharge {
   id: string
   label: string
   amount: number
   category: 'fixe' | 'variable'
-  dependsOn?: ChargeDependsOn // for variable: depends on revenue or orders
+  dependsOn?: ChargeDependsOn
+  formula?: ChargeFormula // if set, amount is auto-calculated
 }
 
 export interface FinancialMonth {
   month: string
   revenue: number
-  orders?: number // number of orders (e-commerce)
+  orders?: number
   charges: FinancialCharge[]
 }
 
 export interface FinancialPilotingData {
   months: FinancialMonth[]
+  paymentMix?: PaymentMethodConfig[] // for blended transaction fee calculation
+  markupMultiplier?: number // e.g. 2.5 = CA HTVA / 2.5 = cost of goods
 }
 
 // Standard menu IDs

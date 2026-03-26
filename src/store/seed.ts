@@ -6,7 +6,7 @@ import {
 } from '@/data/mock'
 
 const INIT_KEY = 'systemia_initialized'
-const SEED_VERSION = '5'
+const SEED_VERSION = '6'
 const USERS_KEY = 'systemia_users'
 const REQUESTS_KEY = 'systemia_requests'
 const RESOURCES_KEY = 'systemia_resources'
@@ -101,67 +101,40 @@ export function seedData(): void {
   setItem<ClientRequest[]>(REQUESTS_KEY, seededRequests)
 
   // Seed Boutique MDA with financial piloting custom page (Shopify e-commerce)
+  // Formulas:
+  // - Achat marchandise = CA / 2.5 (markup x2.5 HTVA)
+  // - Frais de transaction = blended rate based on payment mix (Viva Wallet 46.3%, Klarna 40.3%, PayPal 11.3%, gift cards 2.1%)
+  const mdaMakeCharges = (prefix: string, metaAds: number, googleAds: number, expedition: number, emballages: number, preparateur: number, saas: number) => [
+    { id: `${prefix}-1`, label: 'Loyer entrepôt', amount: 2000, category: 'fixe' as const, dependsOn: 'fixe' as const },
+    { id: `${prefix}-2`, label: 'Charges salariales', amount: 4000, category: 'fixe' as const, dependsOn: 'fixe' as const },
+    { id: `${prefix}-3`, label: 'Assurances', amount: 450, category: 'fixe' as const, dependsOn: 'fixe' as const },
+    { id: `${prefix}-4`, label: 'Comptable', amount: 350, category: 'fixe' as const, dependsOn: 'fixe' as const },
+    { id: `${prefix}-4b`, label: 'Abonnement Shopify Advanced', amount: 384, category: 'fixe' as const, dependsOn: 'fixe' as const },
+    { id: `${prefix}-4c`, label: 'Apps & outils SaaS', amount: saas, category: 'fixe' as const, dependsOn: 'fixe' as const },
+    { id: `${prefix}-5`, label: 'Meta Ads', amount: metaAds, category: 'variable' as const, dependsOn: 'ca' as const },
+    { id: `${prefix}-5b`, label: 'Google Ads', amount: googleAds, category: 'variable' as const, dependsOn: 'ca' as const },
+    { id: `${prefix}-6`, label: 'Achat marchandise', amount: 0, category: 'variable' as const, dependsOn: 'ca' as const, formula: { type: 'percentage_of_ca' as const, rate: 0.40 } },
+    { id: `${prefix}-6b`, label: 'Frais de transaction', amount: 0, category: 'variable' as const, dependsOn: 'ca' as const, formula: { type: 'blended_transaction_fees' as const } },
+    { id: `${prefix}-7`, label: 'Frais d\'expédition', amount: expedition, category: 'variable' as const, dependsOn: 'commandes' as const },
+    { id: `${prefix}-8`, label: 'Emballages', amount: emballages, category: 'variable' as const, dependsOn: 'commandes' as const },
+    { id: `${prefix}-8b`, label: 'Préparateur de commande', amount: preparateur, category: 'variable' as const, dependsOn: 'commandes' as const },
+  ]
+
   const mdaFinancialData: FinancialPilotingData = {
+    // Payment mix from February 2026 data (Shopify Advanced)
+    paymentMix: [
+      { name: 'Shopify Payments (Viva Wallet)', sharePercent: 46.3, feePercent: 1.4, fixedFeePerTx: 0.25 },
+      { name: 'Klarna', sharePercent: 40.3, feePercent: 2.99, fixedFeePerTx: 0.35 },
+      { name: 'PayPal', sharePercent: 11.3, feePercent: 3.49, fixedFeePerTx: 0.49 },
+      { name: 'Gift cards', sharePercent: 2.1, feePercent: 0, fixedFeePerTx: 0 },
+    ],
+    markupMultiplier: 2.5, // CA HTVA / 2.5 = cost of goods
     months: [
-      {
-        month: 'Janvier 2026',
-        revenue: 30000,
-        orders: 245,
-        charges: [
-          { id: 'ch-1', label: 'Loyer entrepôt', amount: 2000, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-2', label: 'Charges salariales', amount: 4000, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-3', label: 'Assurances', amount: 450, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-4', label: 'Comptable', amount: 350, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-4b', label: 'Abonnement Shopify', amount: 79, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-4c', label: 'Apps & outils SaaS', amount: 180, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-5', label: 'Meta Ads', amount: 5000, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-5b', label: 'Google Ads', amount: 1500, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-6', label: 'Achat marchandise', amount: 8000, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-7', label: 'Frais d\'expédition', amount: 1200, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-8', label: 'Emballages', amount: 400, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-8b', label: 'Préparateur de commande', amount: 1800, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-8c', label: 'Frais Stripe/paiement', amount: 540, category: 'variable', dependsOn: 'ca' },
-        ],
-      },
-      {
-        month: 'Février 2026',
-        revenue: 27500,
-        orders: 210,
-        charges: [
-          { id: 'ch-9', label: 'Loyer entrepôt', amount: 2000, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-10', label: 'Charges salariales', amount: 4000, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-11', label: 'Assurances', amount: 450, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-12', label: 'Comptable', amount: 350, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-12b', label: 'Abonnement Shopify', amount: 79, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-12c', label: 'Apps & outils SaaS', amount: 180, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-13', label: 'Meta Ads', amount: 4500, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-13b', label: 'Google Ads', amount: 1200, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-14', label: 'Achat marchandise', amount: 7000, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-15', label: 'Frais d\'expédition', amount: 1000, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-16', label: 'Emballages', amount: 350, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-16b', label: 'Préparateur de commande', amount: 1550, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-16c', label: 'Frais Stripe/paiement', amount: 495, category: 'variable', dependsOn: 'ca' },
-        ],
-      },
       {
         month: 'Mars 2026',
         revenue: 33000,
         orders: 280,
-        charges: [
-          { id: 'ch-17', label: 'Loyer entrepôt', amount: 2000, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-18', label: 'Charges salariales', amount: 4000, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-19', label: 'Assurances', amount: 450, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-20', label: 'Comptable', amount: 350, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-20b', label: 'Abonnement Shopify', amount: 79, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-20c', label: 'Apps & outils SaaS', amount: 195, category: 'fixe', dependsOn: 'fixe' },
-          { id: 'ch-21', label: 'Meta Ads', amount: 5500, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-21b', label: 'Google Ads', amount: 1800, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-22', label: 'Achat marchandise', amount: 9000, category: 'variable', dependsOn: 'ca' },
-          { id: 'ch-23', label: 'Frais d\'expédition', amount: 1400, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-24', label: 'Emballages', amount: 500, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-24b', label: 'Préparateur de commande', amount: 2100, category: 'variable', dependsOn: 'commandes' },
-          { id: 'ch-24c', label: 'Frais Stripe/paiement', amount: 594, category: 'variable', dependsOn: 'ca' },
-        ],
+        charges: mdaMakeCharges('mar', 5500, 1800, 1400, 500, 2100, 195),
       },
     ],
   }
