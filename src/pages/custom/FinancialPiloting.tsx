@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { useClientData } from '@/hooks/useClientData'
 import type { FinancialPilotingData, FinancialMonth, FinancialCharge, ChargeDependsOn } from '@/types'
 import { useAuth } from '@/hooks/useAuth'
-import { Euro, TrendingUp, TrendingDown, Plus, Trash2, Calculator, ShoppingCart, Package } from 'lucide-react'
+import { Euro, TrendingUp, TrendingDown, Plus, Trash2, Calculator, ShoppingCart, Package, Save, Check } from 'lucide-react'
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line, ComposedChart } from 'recharts'
 
 interface Props {
@@ -63,32 +63,55 @@ export function FinancialPiloting({ pageId }: Props) {
   const rawData = clientData?.customPageData?.[pageId] as FinancialPilotingData | undefined
   const [data, setData] = useState<FinancialPilotingData>(rawData || { months: [] })
   const [selectedMonth, setSelectedMonth] = useState<number>(0)
+  const [hasUnsaved, setHasUnsaved] = useState(false)
+  const [justSaved, setJustSaved] = useState(false)
 
   // Check if client can edit
   const page = clientData?.customPages?.find(p => p.id === pageId)
   const canEdit = isAdmin || (page?.clientEditable ?? false)
 
-  const save = (updated: FinancialPilotingData) => {
+  // Local update (no persist)
+  const update = (updated: FinancialPilotingData) => {
     setData(updated)
-    updateCustomPageData(pageId, updated)
+    setHasUnsaved(true)
+    setJustSaved(false)
+  }
+
+  // Explicit save to localStorage
+  const handleSave = () => {
+    updateCustomPageData(pageId, data)
+    setHasUnsaved(false)
+    setJustSaved(true)
+    setTimeout(() => setJustSaved(false), 2000)
   }
 
   const addMonth = () => {
-    const newMonth: FinancialMonth = {
-      month: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
-      revenue: 0,
-      orders: 0,
-      charges: [],
+    const lastMonth = data.months[data.months.length - 1]
+    let newMonth: FinancialMonth
+    if (lastMonth) {
+      // Duplicate previous month with new IDs
+      newMonth = {
+        ...lastMonth,
+        month: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        charges: lastMonth.charges.map(c => ({ ...c, id: `ch-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` })),
+      }
+    } else {
+      newMonth = {
+        month: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        revenue: 0,
+        orders: 0,
+        charges: [],
+      }
     }
     const updated = { ...data, months: [...data.months, newMonth] }
-    save(updated)
+    update(updated)
     setSelectedMonth(updated.months.length - 1)
   }
 
   const updateMonth = (idx: number, field: keyof FinancialMonth, value: string | number) => {
     const months = [...data.months]
     months[idx] = { ...months[idx], [field]: value }
-    save({ ...data, months })
+    update({ ...data, months })
   }
 
   const addCharge = (monthIdx: number, category: 'fixe' | 'variable') => {
@@ -101,7 +124,7 @@ export function FinancialPiloting({ pageId }: Props) {
       dependsOn: category === 'fixe' ? 'fixe' : 'ca',
     }
     months[monthIdx] = { ...months[monthIdx], charges: [...months[monthIdx].charges, charge] }
-    save({ ...data, months })
+    update({ ...data, months })
   }
 
   const updateCharge = (monthIdx: number, chargeIdx: number, field: keyof FinancialCharge, value: string | number) => {
@@ -109,19 +132,19 @@ export function FinancialPiloting({ pageId }: Props) {
     const charges = [...months[monthIdx].charges]
     charges[chargeIdx] = { ...charges[chargeIdx], [field]: value }
     months[monthIdx] = { ...months[monthIdx], charges }
-    save({ ...data, months })
+    update({ ...data, months })
   }
 
   const removeCharge = (monthIdx: number, chargeIdx: number) => {
     const months = [...data.months]
     months[monthIdx] = { ...months[monthIdx], charges: months[monthIdx].charges.filter((_, i) => i !== chargeIdx) }
-    save({ ...data, months })
+    update({ ...data, months })
   }
 
   const removeMonth = (idx: number) => {
     if (!confirm('Supprimer ce mois ?')) return
     const months = data.months.filter((_, i) => i !== idx)
-    save({ ...data, months })
+    update({ ...data, months })
     if (selectedMonth >= months.length) setSelectedMonth(Math.max(0, months.length - 1))
   }
 
@@ -163,7 +186,19 @@ export function FinancialPiloting({ pageId }: Props) {
           <p className="text-muted-foreground text-sm mt-1">Pilotage financier mois par mois.</p>
         </div>
         {canEdit && (
-          <Button variant="gradient" onClick={addMonth}><Plus className="h-4 w-4" />Ajouter un mois</Button>
+          <div className="flex items-center gap-2">
+            {hasUnsaved && (
+              <Button variant="gradient" onClick={handleSave}>
+                <Save className="h-4 w-4" />Enregistrer
+              </Button>
+            )}
+            {justSaved && (
+              <span className="flex items-center gap-1 text-sm text-emerald-600 font-medium">
+                <Check className="h-4 w-4" />Sauvegardé
+              </span>
+            )}
+            <Button variant="outline" onClick={addMonth}><Plus className="h-4 w-4" />Ajouter un mois</Button>
+          </div>
         )}
       </div>
 
